@@ -14,7 +14,7 @@ Before starting, ensure you have:
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/Adnanfahsi01/itri_event.git
+git clone https://github.com/amghar855/AI.ITRI.TECKETING.git
 cd itri_event
 ```
 
