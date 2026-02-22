@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>AI ITRI NTIC EVENT 2026 - Ticket</title>
+    <title>AI ITRI NTIC EVENT - Ticket</title>
     <style>
         body {
             font-family: 'Inter', Arial, sans-serif;
@@ -78,7 +78,7 @@
 <body>
     <div class="ticket">
         <div class="header">
-            <h1>AI ITRI NTIC EVENT 2026</h1>
+            <h1>AI ITRI NTIC EVENT</h1>
             <p>Tanger, Morocco</p>
         </div>
         

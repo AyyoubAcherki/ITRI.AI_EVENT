@@ -31,6 +31,10 @@ class Reservation extends Model
         'is_scanned',
         'scanned_at',
         'scan_count',
+        'status',
+        'confirmation_token',
+        'notified_at_final',
+        'notified_at_reminder',
     ];
 
     /**
@@ -42,6 +46,8 @@ class Reservation extends Model
         'is_used' => 'boolean',
         'is_scanned' => 'boolean',
         'scanned_at' => 'datetime',
+        'notified_at_final' => 'datetime',
+        'notified_at_reminder' => 'datetime',
         'scan_count' => 'integer',
     ];
 

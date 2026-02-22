@@ -7,6 +7,8 @@ use App\Models\Seat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReservationConfirmationMailable;
 
 /**
  * ReservationController handles reservation operations
@@ -30,6 +32,10 @@ class ReservationController extends Controller
         
         if ($request->has('role')) {
             $query->where('role', $request->role);
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
         }
         
         if ($request->has('search')) {
@@ -127,6 +133,8 @@ class ReservationController extends Controller
             'ticket_code' => $ticketCode,
             'qr_code' => $qrData,
             'is_used' => false,
+            'status' => 'pending',
+            'confirmation_token' => Str::random(40),
         ]);
 
         // Create reservation_seats entries
@@ -140,8 +148,17 @@ class ReservationController extends Controller
             ]);
         }
 
+        // Send confirmation email
+        try {
+            $confirmationUrl = config('app.frontend_url', 'http://localhost:3000') . '/confirm-reservation?token=' . $reservation->confirmation_token;
+            $cancellationUrl = config('app.frontend_url', 'http://localhost:3000') . '/cancel-reservation?token=' . $reservation->confirmation_token;
+            Mail::to($reservation->email)->send(new ReservationConfirmationMailable($reservation, $confirmationUrl, $cancellationUrl));
+        } catch (\Exception $e) {
+            \Log::error('Error sending confirmation email: ' . $e->getMessage());
+        }
+
         return response()->json([
-            'message' => 'Reservation created successfully',
+            'message' => 'Réservation créée. Veuillez vérifier votre email pour confirmer.',
             'reservation' => $reservation,
             'ticket_code' => $ticketCode,
         ], 201);
@@ -378,5 +395,78 @@ class ReservationController extends Controller
         });
 
         return response()->json($reservations);
+    }
+
+    /**
+     * Confirm reservation with token
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function confirm(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        $reservation = Reservation::where('confirmation_token', $request->token)->first();
+
+        if (!$reservation) {
+            return response()->json([
+                'message' => 'Lien de confirmation invalide ou expiré.',
+            ], 404);
+        }
+
+        if ($reservation->status === 'confirmed') {
+            return response()->json([
+                'message' => 'Cette réservation est déjà confirmée.',
+                'reservation' => $reservation,
+            ]);
+        }
+
+        // Update status to confirmed
+        $reservation->update([
+            'status' => 'confirmed',
+            'confirmation_token' => null, // Clear token after use
+        ]);
+
+        return response()->json([
+            'message' => 'Votre réservation a été confirmée avec succès !',
+            'reservation' => $reservation,
+        ]);
+    }
+
+    /**
+     * Cancel a reservation using a token.
+     */
+    public function cancel(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        $reservation = Reservation::where('confirmation_token', $request->token)->first();
+
+        if (!$reservation) {
+            return response()->json([
+                'message' => 'Lien d\'annulation invalide ou expiré.',
+            ], 404);
+        }
+
+        if ($reservation->status === 'canceled') {
+            return response()->json([
+                'message' => 'Cette réservation est déjà annulée.',
+            ], 400);
+        }
+
+        $reservation->update([
+            'status' => 'canceled',
+            'confirmation_token' => null, // Clear token after use
+        ]);
+
+        return response()->json([
+            'message' => 'Votre réservation a été annulée avec succès.',
+            'status' => 'canceled',
+        ]);
     }
 }

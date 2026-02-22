@@ -26,7 +26,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Final confirmation emails on 16/03/2026 at 09:00
+        $schedule->command('app:send-final-confirmations')
+                 ->cron('0 9 16 3 *');
     }
 
     /**

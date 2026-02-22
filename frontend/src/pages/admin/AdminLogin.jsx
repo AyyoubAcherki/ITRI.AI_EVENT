@@ -26,7 +26,7 @@ function AdminLogin() {
 
     try {
       const response = await adminLogin(formData);
-      
+
       // Store token and admin data
       localStorage.setItem('adminToken', response.data.token);
       localStorage.setItem('adminData', JSON.stringify(response.data.admin));
@@ -46,7 +46,7 @@ function AdminLogin() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-accent mb-2">Admin Portal</h1>
-          <p className="text-gray-600">AI ITRI NTIC EVENT 2026</p>
+          <p className="text-gray-600">AI ITRI NTIC EVENT</p>
         </div>
 
         {/* Error Message */}

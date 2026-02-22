@@ -27,10 +27,12 @@ class SeatController extends Controller
             ->orderBy('seat_index')
             ->get();
         
-        // Get reserved seat IDs for the specified day
+        // Get reserved seat IDs for the specified day - only for pending or confirmed reservations
         $reservedSeatIds = DB::table('reservation_seats')
-            ->where('day', $day)
-            ->pluck('seat_id')
+            ->join('reservations', 'reservation_seats.reservation_id', '=', 'reservations.id')
+            ->where('reservation_seats.day', $day)
+            ->whereIn('reservations.status', ['pending', 'confirmed'])
+            ->pluck('reservation_seats.seat_id')
             ->toArray();
         
         // Add availability status to each seat
@@ -74,10 +76,12 @@ class SeatController extends Controller
         $result = [];
         
         foreach ($days as $day) {
-            // Get reserved seat IDs for this day
+            // Get reserved seat IDs for this day - only for pending or confirmed reservations
             $reservedSeatIds = DB::table('reservation_seats')
-                ->where('day', $day)
-                ->pluck('seat_id')
+                ->join('reservations', 'reservation_seats.reservation_id', '=', 'reservations.id')
+                ->where('reservation_seats.day', $day)
+                ->whereIn('reservations.status', ['pending', 'confirmed'])
+                ->pluck('reservation_seats.seat_id')
                 ->toArray();
             
             $result[$day] = $reservedSeatIds;

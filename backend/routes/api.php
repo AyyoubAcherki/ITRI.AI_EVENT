@@ -38,8 +38,10 @@ Route::get('/programs/{program}', [ProgramController::class, 'show']);
 Route::get('/seats', [SeatController::class, 'index']);
 Route::get('/seats/availability', [SeatController::class, 'availability']);
 
-// Reservations - Public (create only)
+// Reservations - Public
 Route::post('/reservations', [ReservationController::class, 'store']);
+Route::post('/reservations/confirm', [ReservationController::class, 'confirm']);
+Route::post('/reservations/cancel', [ReservationController::class, 'cancel']);
 
 // Download ticket - Public
 Route::get('/tickets/{ticketCode}/download', [ReservationController::class, 'downloadTicket']);

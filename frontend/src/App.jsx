@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import Speakers from './pages/Speakers';
 import Program from './pages/Program';
 import Reservation from './pages/Reservation';
+import ConfirmReservation from './pages/ConfirmReservation';
+import CancelReservation from './pages/CancelReservation';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminReservations from './pages/admin/AdminReservations';
@@ -37,6 +39,8 @@ function App() {
                 <Route path="/speakers" element={<Speakers />} />
                 <Route path="/program" element={<Program />} />
                 <Route path="/reservation" element={<Reservation />} />
+                <Route path="/confirm-reservation" element={<ConfirmReservation />} />
+                <Route path="/cancel-reservation" element={<CancelReservation />} />
               </Routes>
               <Footer />
             </>

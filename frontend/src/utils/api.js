@@ -28,6 +28,8 @@ export const getSpeakers = () => api.get('/speakers');
 export const getPrograms = () => api.get('/programs');
 export const getSeats = (day = '') => api.get(`/seats${day ? `?day=${day}` : ''}`);
 export const createReservation = (data) => api.post('/reservations', data);
+export const confirmReservation = (token) => api.post('/reservations/confirm', { token });
+export const cancelReservation = (token) => api.post('/reservations/cancel', { token });
 
 // Admin Authentication
 export const adminLogin = (credentials) => api.post('/admin/login', credentials);
@@ -44,7 +46,7 @@ export const getReservations = (filters = {}) => {
   if (filters.day && filters.day.trim()) cleanFilters.day = filters.day;
   if (filters.role && filters.role.trim()) cleanFilters.role = filters.role;
   if (filters.search && filters.search.trim()) cleanFilters.search = filters.search;
-  
+
   const params = new URLSearchParams(cleanFilters).toString();
   return api.get(`/reservations${params ? `?${params}` : ''}`);
 };

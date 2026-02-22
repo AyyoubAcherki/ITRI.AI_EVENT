@@ -175,7 +175,7 @@ function Reservation() {
 
   const generatePDFTicket = async (reservationData) => {
     const doc = new jsPDF();
-    
+
     // QR Code data - use the ticket_code from server response
     const qrData = JSON.stringify({
       ticket_code: reservationData.ticket_code,
@@ -190,23 +190,22 @@ function Reservation() {
       margin: 1,
     });
 
-    // PDF Design
-    // Header - Blue background
-    doc.setFillColor(0, 106, 215); // #006AD7
+    const primaryColor = [33, 39, 123]; // #21277B
+    const accentColor = [0, 106, 215];  // #006AD7
+
+    // Background Header
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 40, 'F');
-    
-    // Event Title
+
+    // Header Text
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('AI ITRI NTIC EVENT 2026', 105, 15, { align: 'center' });
-    
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Tanger, Morocco', 105, 25, { align: 'center' });
-    
+    doc.setFontSize(28);
+    doc.text('AI ITRI NTIC EVENT', 105, 20, { align: 'center' });
     doc.setFontSize(12);
-    doc.text('Official Ticket', 105, 33, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('14 - 16 MAI 2026 | TANGER, MOROCCO', 105, 30, { align: 'center' });
+
 
     // Ticket Border
     doc.setDrawColor(0, 106, 215);
@@ -216,130 +215,91 @@ function Reservation() {
     // Attendee Information
     doc.setTextColor(33, 39, 123); // #21277B
     doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TICKET INFORMATION', 20, 60);
+    doc.text('TICKET DE RÉSERVATION', 105, 60, { align: 'center' });
 
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    
-    let yPos = 75;
-    const lineHeight = 10;
+    // Horizontal Line
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(20, 65, 190, 65);
 
-    // Ticket Code
-    doc.setFont('helvetica', 'bold');
-    doc.text('Ticket Code:', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 106, 215);
-    doc.text(reservationData.ticket_code, 60, yPos);
-    doc.setTextColor(0, 0, 0);
-    yPos += lineHeight;
+    let yPos = 80;
+    const leftMargin = 25;
+    const valueMargin = 80;
+    const lineHeight = 12;
 
-    // Name
-    doc.setFont('helvetica', 'bold');
-    doc.text('Full Name:', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${formData.first_name} ${formData.last_name}`, 60, yPos);
-    yPos += lineHeight;
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
 
-    // Email
-    doc.setFont('helvetica', 'bold');
-    doc.text('Email:', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(formData.email, 60, yPos);
-    yPos += lineHeight;
-
-    // Phone
-    doc.setFont('helvetica', 'bold');
-    doc.text('Phone:', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(formData.phone, 60, yPos);
-    yPos += lineHeight;
-
-    // Role
-    doc.setFont('helvetica', 'bold');
-    doc.text('Role:', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(formData.role === 'student' ? 'Étudiant' : 'Employé', 60, yPos);
-    yPos += lineHeight;
-
-    // Institution (if student)
-    if (formData.institution) {
+    const drawField = (label, value, isLink = false) => {
       doc.setFont('helvetica', 'bold');
-      doc.text('Institution:', 20, yPos);
+      doc.text(label, leftMargin, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(formData.institution, 60, yPos);
+      if (isLink) {
+        doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+        doc.text(value, valueMargin, yPos);
+        doc.setTextColor(100, 100, 100);
+      } else {
+        doc.setTextColor(0, 0, 0);
+        doc.text(value, valueMargin, yPos);
+        doc.setTextColor(100, 100, 100);
+      }
       yPos += lineHeight;
-    }
+    };
+
+    drawField('Participant:', `${formData.first_name} ${formData.last_name}`);
+    drawField('Email:', formData.email);
+    drawField('Rôle:', formData.role === 'student' ? 'Étudiant' : 'Employé');
+    drawField('Institution:', formData.institution || 'N/A');
 
     yPos += 5;
-
-    // Divider line
-    doc.setDrawColor(154, 217, 234); // #9AD9EA
-    doc.setLineWidth(0.5);
-    doc.line(20, yPos, 190, yPos);
-    
-    yPos += 15;
-
-    // Seat Information
-    doc.setTextColor(33, 39, 123);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SEAT DETAILS', 20, yPos);
-    yPos += 15;
-
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-
-    // Day
-    doc.setFont('helvetica', 'bold');
-    doc.text('Event Day(s):', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 106, 215);
-    doc.setFontSize(13);
     const dayLabels = selectedDays.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(', ');
-    doc.text(dayLabels, 70, yPos);
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
-    yPos += lineHeight;
+    drawField('Accès:', dayLabels);
 
-    // Seat Numbers
     doc.setFont('helvetica', 'bold');
-    doc.text('Seat(s):', 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 106, 215);
-    doc.setFontSize(13);
-    doc.text(selectedSeats.map(s => s.seat_number).join(', '), 60, yPos);
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
+    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+    drawField('Sièges:', selectedSeats.map(s => s.seat_number).join(', '));
 
-    // QR Code
-    doc.addImage(qrCodeDataUrl, 'PNG', 130, 155, 60, 60);
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Scan for verification', 160, 222, { align: 'center' });
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('CODE DU TICKET:', 105, yPos, { align: 'center' });
+    yPos += 8;
+    doc.setFontSize(16);
+    doc.text(ticketCode, 105, yPos, { align: 'center' });
+
+    // QR Code Section
+    const qrSize = 50;
+    const qrX = (210 - qrSize) / 2;
+    const qrY = yPos + 10;
+    doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Scannez pour validation à l\'entrée', 105, qrY + qrSize + 10, { align: 'center' });
 
     // Footer
-    doc.setDrawColor(154, 217, 234);
-    doc.setLineWidth(0.5);
-    doc.line(20, 230, 190, 230);
-
+    doc.setFillColor(245, 247, 250);
+    doc.rect(0, 260, 210, 37, 'F');
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Please present this ticket at the entrance.', 105, 240, { align: 'center' });
-    doc.text('Keep this ticket safe and bring it on the event day.', 105, 247, { align: 'center' });
-    
-    doc.setFontSize(8);
-    doc.text(`Generated on: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 105, 255, { align: 'center' });
-
-    // Watermark
-    doc.setTextColor(200, 200, 200);
-    doc.setFontSize(40);
     doc.setFont('helvetica', 'bold');
-    doc.text('ITRI 2026', 105, 150, { align: 'center', angle: 45 });
+    doc.text('IMPORTANT', 105, 270, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Veuillez présenter ce ticket (numérique ou imprimé) à l\'entrée.', 105, 277, { align: 'center' });
+    doc.text('Une pièce d\'identité peut vous être demandée.', 105, 283, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}`, 105, 292, { align: 'center' });
+
+    // Watermark (subtle)
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setGState(new doc.GState({ opacity: 0.05 }));
+    doc.setFontSize(60);
+    doc.text('ANTIGRAVITY', 105, 150, { align: 'center', angle: 45 });
 
     // Save PDF
-    const fileName = `ITRI_2026_Ticket_${formData.first_name}_${formData.last_name}.pdf`;
+    const fileName = `Ticket_ITRI_2026_${formData.last_name}.pdf`;
     doc.save(fileName);
   };
 
@@ -365,7 +325,7 @@ function Reservation() {
 
   const renderSeatBlock = (blockData, blockName) => {
     const rows = Object.keys(blockData).sort((a, b) => parseInt(a) - parseInt(b));
-    
+
     return (
       <div className="flex-1">
         <h4 className="text-center font-bold mb-4 text-gray-700">{blockName}</h4>
@@ -408,10 +368,15 @@ function Reservation() {
       {/* Success Message */}
       {showSuccess && (
         <div className="container mx-auto px-6 mb-8">
-          <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg text-center">
-            <p className="font-bold text-xl mb-2">✓ Réservation Réussie!</p>
-            <p className="mb-2">Votre siège a été réservé. Votre ticket PDF a été téléchargé automatiquement.</p>
-            <p className="text-sm">Vérifiez votre dossier de téléchargements pour le fichier PDF avec QR code.</p>
+          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-6 py-8 rounded-lg text-center animate-fadeIn">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-200 mb-4 text-blue-600">
+              <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="font-bold text-2xl mb-2">Presque fini !</p>
+            <p className="text-lg mb-4">Votre demande de réservation a été enregistrée. **Veuillez vérifier votre email pour confirmer votre place.**</p>
+            <p className="text-sm">Si vous ne confirmez pas via l'email envoyé, vous serez placé sur la liste d'attente.</p>
           </div>
         </div>
       )}
@@ -436,11 +401,10 @@ function Reservation() {
                       key={day.value}
                       type="button"
                       onClick={() => handleDayToggle(day.value)}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        selectedDays.includes(day.value)
-                          ? 'bg-[#006AD7] text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedDays.includes(day.value)
+                        ? 'bg-[#006AD7] text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
                     >
                       {day.label}
                     </button>
@@ -448,11 +412,10 @@ function Reservation() {
                   <button
                     type="button"
                     onClick={() => handleDayToggle('all')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                      selectedDays.length === 3
-                        ? 'bg-[#21277B] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedDays.length === 3
+                      ? 'bg-[#21277B] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
                   >
                     Les 3 Jours
                   </button>
@@ -597,8 +560,8 @@ function Reservation() {
                   <p className="text-sm text-gray-600 mb-4">
                     <span className="font-semibold">Jour(s) sélectionné(s):</span>{' '}
                     <span className="text-[#006AD7] font-bold">
-                      {selectedDays.length === 3 
-                        ? 'Les 3 Jours' 
+                      {selectedDays.length === 3
+                        ? 'Les 3 Jours'
                         : selectedDays.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(', ')}
                     </span>
                   </p>

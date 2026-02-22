@@ -36,7 +36,7 @@ class TicketController extends Controller
 
         // Prepare ticket data
         $ticketData = [
-            'event_name' => 'AI ITRI NTIC EVENT 2026',
+            'event_name' => 'AI ITRI NTIC EVENT',
             'event_location' => 'Tanger, Morocco',
             'full_name' => $reservation->full_name,
             'email' => $reservation->email,
@@ -78,7 +78,7 @@ class TicketController extends Controller
         $qrCodeImage = base64_encode(QrCode::format('png')->size(200)->generate($reservation->qr_code));
 
         $ticketData = [
-            'event_name' => 'AI ITRI NTIC EVENT 2026',
+            'event_name' => 'AI ITRI NTIC EVENT',
             'event_location' => 'Tanger, Morocco',
             'full_name' => $reservation->full_name,
             'email' => $reservation->email,
@@ -119,7 +119,7 @@ class TicketController extends Controller
         $qrCodeImage = base64_encode(QrCode::format('png')->size(200)->generate($reservation->qr_code));
 
         return response()->json([
-            'event_name' => 'AI ITRI NTIC EVENT 2026',
+            'event_name' => 'AI ITRI NTIC EVENT',
             'event_location' => 'Tanger, Morocco',
             'full_name' => $reservation->full_name,
             'email' => $reservation->email,
