@@ -1,0 +1,16 @@
+{
+    "name": "reservation-system",
+    "version": "1.0.0",
+    "description": "Auto Reservation System with WhatsApp and Email",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "axios": "^1.6.2",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "nodemailer": "^6.9.7",
+        "sqlite3": "^5.1.6"
+    }
+}

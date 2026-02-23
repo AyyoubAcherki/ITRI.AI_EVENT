@@ -140,8 +140,9 @@ function Reservation() {
       console.log('Response from server:', response.data);
 
       // Check if reservation was created successfully
-      if (!response.data || !response.data.ticket_code) {
-        throw new Error('Invalid response from server');
+      if (!response.data || (!response.data.ticket_code && !response.data.reservation?.ticket_code)) {
+        console.error('Missing ticket code in response:', response.data);
+        throw new Error('Invalid response from server (missing ticket_code)');
       }
 
       // Generate PDF ticket with QR code
@@ -177,8 +178,11 @@ function Reservation() {
     const doc = new jsPDF();
 
     // QR Code data - use the ticket_code from server response
+    // Sometimes it's at response.data.ticket_code, sometimes response.data.reservation.ticket_code
+    const ticketCode = reservationData.ticket_code || reservationData.reservation?.ticket_code || 'ITRI-UNKNOWN';
+
     const qrData = JSON.stringify({
-      ticket_code: reservationData.ticket_code,
+      ticket_code: ticketCode,
       email: formData.email,
     });
 

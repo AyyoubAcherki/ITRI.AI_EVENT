@@ -1,0 +1,13 @@
+@echo off
+echo Starting AI ITRI TECKETING Project...
+
+echo Starting Backend Server...
+start cmd /k "cd backend && php artisan serve"
+
+echo Starting Frontend Server...
+start cmd /k "cd frontend && npm run dev"
+
+echo Starting WhatsApp Gateway...
+start cmd /k "cd whatsapp-gateway && node server.js"
+
+echo All servers have been launched in separate windows!

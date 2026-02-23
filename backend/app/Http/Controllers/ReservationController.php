@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Mail\ReservationConfirmationMailable;
+use App\Services\WhatsAppService;
 
 /**
  * ReservationController handles reservation operations
@@ -29,7 +31,7 @@ class ReservationController extends Controller
         if ($request->has('day')) {
             $query->whereJsonContains('days', $request->day);
         }
-        
+
         if ($request->has('role')) {
             $query->where('role', $request->role);
         }
@@ -37,13 +39,13 @@ class ReservationController extends Controller
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
-        
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -89,10 +91,12 @@ class ReservationController extends Controller
         // Check if seats are available
         foreach ($validated['seats'] as $seatData) {
             $isReserved = DB::table('reservation_seats')
-                ->where('seat_id', $seatData['seat_id'])
-                ->where('day', $seatData['day'])
+                ->join('reservations', 'reservation_seats.reservation_id', '=', 'reservations.id')
+                ->where('reservation_seats.seat_id', $seatData['seat_id'])
+                ->where('reservation_seats.day', $seatData['day'])
+                ->whereIn('reservations.status', ['pending', 'confirmed'])
                 ->exists();
-            
+
             if ($isReserved) {
                 $seat = Seat::find($seatData['seat_id']);
                 return response()->json([
@@ -103,7 +107,7 @@ class ReservationController extends Controller
 
         // Generate unique ticket code
         $ticketCode = strtoupper(Str::random(8));
-        
+
         // Generate QR code data (we'll store the ticket code)
         $qrData = json_encode([
             'ticket_code' => $ticketCode,
@@ -154,7 +158,16 @@ class ReservationController extends Controller
             $cancellationUrl = config('app.frontend_url', 'http://localhost:3000') . '/cancel-reservation?token=' . $reservation->confirmation_token;
             Mail::to($reservation->email)->send(new ReservationConfirmationMailable($reservation, $confirmationUrl, $cancellationUrl));
         } catch (\Exception $e) {
-            \Log::error('Error sending confirmation email: ' . $e->getMessage());
+            Log::error('Error sending confirmation email: ' . $e->getMessage());
+        }
+
+        // Send WhatsApp confirmation
+        try {
+            $whatsAppService = new WhatsAppService();
+            $message = "Bonjour {$reservation->first_name} 👋 Votre réservation pour l’événement est enregistrée ✅ Veuillez vérifier votre email pour confirmer votre réservation.";
+            $whatsAppService->send($reservation->phone, $message);
+        } catch (\Exception $e) {
+            Log::error('Error sending WhatsApp message: ' . $e->getMessage());
         }
 
         return response()->json([
@@ -173,7 +186,7 @@ class ReservationController extends Controller
     public function downloadTicket($ticketCode)
     {
         $reservation = Reservation::where('ticket_code', $ticketCode)->firstOrFail();
-        
+
         // Return reservation data - frontend handles PDF generation
         return response()->json([
             'reservation' => $reservation,
@@ -195,7 +208,7 @@ class ReservationController extends Controller
 
         try {
             $data = json_decode($request->qr_data, true);
-            
+
             if (!isset($data['ticket_code'])) {
                 return response()->json([
                     'valid' => false,
@@ -222,14 +235,14 @@ class ReservationController extends Controller
 
             // Check if this is just validation or actual check-in
             $markAsUsed = $request->input('mark_as_used', false);
-            
+
             // Always track the scan
             $reservation->increment('scan_count');
             $reservation->update([
                 'is_scanned' => true,
                 'scanned_at' => now(),
             ]);
-            
+
             if ($markAsUsed) {
                 // Mark as used only if explicitly requested
                 $reservation->update(['is_used' => true]);
@@ -246,7 +259,6 @@ class ReservationController extends Controller
                 'scan_count' => $reservation->scan_count,
                 'scanned_at' => $reservation->scanned_at,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'valid' => false,
@@ -263,22 +275,22 @@ class ReservationController extends Controller
     public function statistics()
     {
         $totalReservations = Reservation::count();
-        
+
         // Reservations per day
         $day1Count = Reservation::whereJsonContains('days', 'day1')->count();
         $day2Count = Reservation::whereJsonContains('days', 'day2')->count();
         $day3Count = Reservation::whereJsonContains('days', 'day3')->count();
-        
+
         // Role distribution
         $students = Reservation::where('role', 'student')->count();
         $employees = Reservation::where('role', 'employee')->count();
-        
+
         // Seat occupancy
         $totalSeats = Seat::count();
         $reservedSeatsDay1 = DB::table('reservation_seats')->where('day', 'day1')->count();
         $reservedSeatsDay2 = DB::table('reservation_seats')->where('day', 'day2')->count();
         $reservedSeatsDay3 = DB::table('reservation_seats')->where('day', 'day3')->count();
-        
+
         // Tickets used vs unused
         $usedTickets = Reservation::where('is_used', true)->count();
         $unusedTickets = Reservation::where('is_used', false)->count();
@@ -315,7 +327,7 @@ class ReservationController extends Controller
             'ticket_status' => [
                 'used' => $usedTickets,
                 'unused' => $unusedTickets,
-        ]
+            ]
         ]);
     }
 
@@ -329,7 +341,7 @@ class ReservationController extends Controller
         $totalReservations = Reservation::count();
         $totalScanned = Reservation::where('is_scanned', true)->count();
         $totalScans = Reservation::sum('scan_count');
-        
+
         // Scans per day (last 7 days)
         $scansPerDay = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -340,7 +352,7 @@ class ReservationController extends Controller
                 'count' => $count,
             ];
         }
-        
+
         // Scanned reservations with details
         $scannedReservations = Reservation::where('is_scanned', true)
             ->orderBy('scanned_at', 'desc')
