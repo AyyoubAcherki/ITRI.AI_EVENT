@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
-const axios = require('axios');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -52,20 +51,7 @@ app.post('/api/reservations', async (req, res) => {
         }
 
         try {
-            // 2️⃣ Send WhatsApp message via UltraMsg
-            const instanceId = 'instance162815';
-            const token = 'bplyfzxy1ruqi862';
 
-            const whatsappMessage = `Bonjour ${name} 👋 Votre réservation pour l’événement est enregistrée ✅ Veuillez vérifier votre email pour confirmer votre réservation.`;
-
-            const parsedPhone = phone.replace(/[^0-9]/g, ''); // Ensure numbers only
-
-            await axios.post(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
-                token: token,
-                to: parsedPhone,
-                body: whatsappMessage
-            });
-            console.log('WhatsApp message sent to =', parsedPhone);
 
             // 3️⃣ Send Confirmation Email
             const mailOptions = {

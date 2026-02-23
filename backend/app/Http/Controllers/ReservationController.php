@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ReservationConfirmationMailable;
-use App\Services\WhatsAppService;
 
 /**
  * ReservationController handles reservation operations
@@ -161,14 +160,7 @@ class ReservationController extends Controller
             Log::error('Error sending confirmation email: ' . $e->getMessage());
         }
 
-        // Send WhatsApp confirmation
-        try {
-            $whatsAppService = new WhatsAppService();
-            $message = "Bonjour {$reservation->first_name} 👋 Votre réservation pour l’événement est enregistrée ✅ Veuillez vérifier votre email pour confirmer votre réservation.";
-            $whatsAppService->send($reservation->phone, $message);
-        } catch (\Exception $e) {
-            Log::error('Error sending WhatsApp message: ' . $e->getMessage());
-        }
+
 
         return response()->json([
             'message' => 'Réservation créée. Veuillez vérifier votre email pour confirmer.',

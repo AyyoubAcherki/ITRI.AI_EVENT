@@ -10,7 +10,6 @@ use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
-use App\Services\WhatsAppService;
 
 /**
  * Reservation Controller
@@ -94,14 +93,7 @@ class ReservationController extends Controller
         // Generate QR code image
         $qrCodeImage = base64_encode(QrCode::format('png')->size(200)->generate($qrData));
 
-        // Send WhatsApp confirmation
-        try {
-            $whatsAppService = new WhatsAppService();
-            $message = "Bonjour {$reservation->first_name} 👋 Votre réservation pour l’événement est enregistrée ✅ Veuillez vérifier votre email pour confirmer votre réservation.";
-            $whatsAppService->send($reservation->phone, $message);
-        } catch (\Exception $e) {
-            Log::error('Error sending WhatsApp message: ' . $e->getMessage());
-        }
+
 
         return response()->json([
             'message' => 'Reservation created successfully',
