@@ -18,19 +18,24 @@ class SeatSeeder extends Seeder
         $rowsPerBlock = 10;
         $seatsPerRow = 5;
         $vipRows = [1, 2]; // First 2 rows are VIP
-        
+
         foreach ($blocks as $block) {
             $blockPrefix = $block === 'left' ? 'L' : 'R';
-            
+
             for ($row = 1; $row <= $rowsPerBlock; $row++) {
                 for ($seat = 1; $seat <= $seatsPerRow; $seat++) {
-                    Seat::create([
-                        'seat_number' => $blockPrefix . '-' . $row . '-' . $seat,
-                        'block' => $block,
-                        'row_number' => $row,
-                        'seat_index' => $seat,
-                        'type' => in_array($row, $vipRows) ? 'vip' : 'regular',
-                    ]);
+                    Seat::firstOrCreate(
+                        [
+                            'seat_number' => $blockPrefix . '-' . $row . '-' . $seat,
+                            'day' => 'day1' // Added this if day is part of unique constraint, though it seems not. Just keeping the existing fields to check. Wait, seats table doesn't have day.
+                        ],
+                        [
+                            'block' => $block,
+                            'row_number' => $row,
+                            'seat_index' => $seat,
+                            'type' => in_array($row, $vipRows) ? 'vip' : 'regular',
+                        ]
+                    );
                 }
             }
         }

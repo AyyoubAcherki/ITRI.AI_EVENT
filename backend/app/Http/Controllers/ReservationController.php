@@ -123,32 +123,56 @@ class ReservationController extends Controller
             ];
         }
 
-        // Create reservation
-        $reservation = Reservation::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'role' => $validated['role'],
-            'institution_name' => $validated['institution_name'] ?? null,
-            'days' => $validated['days'],
-            'seat_numbers' => $seatNumbers,
-            'ticket_code' => $ticketCode,
-            'qr_code' => $qrData,
-            'is_used' => false,
-            'status' => 'pending',
-            'confirmation_token' => Str::random(40),
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Create reservation_seats entries
-        foreach ($validated['seats'] as $seatData) {
-            DB::table('reservation_seats')->insert([
-                'reservation_id' => $reservation->id,
-                'seat_id' => $seatData['seat_id'],
-                'day' => $seatData['day'],
-                'created_at' => now(),
-                'updated_at' => now(),
+            // Create reservation
+            $reservation = Reservation::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'role' => $validated['role'],
+                'institution_name' => $validated['institution_name'] ?? null,
+                'days' => $validated['days'],
+                'seat_numbers' => $seatNumbers,
+                'ticket_code' => $ticketCode,
+                'qr_code' => $qrData,
+                'is_used' => false,
+                'status' => 'pending',
+                'confirmation_token' => Str::random(40),
             ]);
+
+            // Create reservation_seats entries
+            foreach ($validated['seats'] as $seatData) {
+                try {
+                    DB::table('reservation_seats')->insert([
+                        'reservation_id' => $reservation->id,
+                        'seat_id' => $seatData['seat_id'],
+                        'day' => $seatData['day'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    if ($e->getCode() == 23000) {
+                        DB::rollBack();
+                        $seat = Seat::find($seatData['seat_id']);
+                        $dayLabel = $seatData['day'] === 'day1' ? 'Jour 1' : ($seatData['day'] === 'day2' ? 'Jour 2' : 'Jour 3');
+                        return response()->json([
+                            'message' => "Désolé, le siège {$seat->seat_number} vient d'être réservé par quelqu'un d'autre pour le {$dayLabel}.",
+                        ], 409);
+                    }
+                    throw $e;
+                }
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating reservation: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la création de votre réservation. Veuillez réessayer.',
+            ], 500);
         }
 
         // Send confirmation email
@@ -217,39 +241,60 @@ class ReservationController extends Controller
                 ]);
             }
 
-            if ($reservation->is_used) {
+            if ($reservation->status !== 'confirmed') {
                 return response()->json([
                     'valid' => false,
-                    'message' => 'Ticket already used',
+                    'message' => 'Réservation non confirmée. La présence doit être confirmée au préalable.',
+                ]);
+            }
+
+            // Calculate max scans (1 scan per booked day)
+            $maxScans = is_array($reservation->days) ? count($reservation->days) : 1;
+
+            if ($reservation->is_used || $reservation->scan_count >= $maxScans) {
+                return response()->json([
+                    'valid' => false,
+                    'message' => "Billet déjà scanné le nombre maximum de fois ($maxScans)",
                     'reservation' => $reservation,
+                    'scan_count' => $reservation->scan_count,
+                    'max_scans' => $maxScans,
                 ]);
             }
 
             // Check if this is just validation or actual check-in
             $markAsUsed = $request->input('mark_as_used', false);
 
-            // Always track the scan
-            $reservation->increment('scan_count');
-            $reservation->update([
-                'is_scanned' => true,
-                'scanned_at' => now(),
-            ]);
-
             if ($markAsUsed) {
-                // Mark as used only if explicitly requested
-                $reservation->update(['is_used' => true]);
-                $message = 'Ticket validated and marked as used';
+                // Always track the scan when checking in
+                $reservation->increment('scan_count');
+                $newScanCount = $reservation->scan_count;
+
+                // Mark as fully used only if they reached their day limit
+                $isFullyUsed = $newScanCount >= $maxScans;
+
+                $reservation->update([
+                    'is_scanned' => true,
+                    'scanned_at' => now(),
+                    'is_used' => $isFullyUsed,
+                ]);
+
+                $message = $isFullyUsed
+                    ? "Billet validé (Utilisé $newScanCount/$maxScans fois) - Scan Final"
+                    : "Billet validé (Utilisé $newScanCount/$maxScans fois) - Scans restants: " . ($maxScans - $newScanCount);
             } else {
-                $message = 'Valid ticket (not yet used)';
+                // Just validating
+                $message = "Billet valide (Utilisé {$reservation->scan_count}/$maxScans fois)";
+                $isFullyUsed = $reservation->is_used;
             }
 
             return response()->json([
                 'valid' => true,
                 'message' => $message,
                 'reservation' => $reservation,
-                'is_used' => $reservation->is_used,
+                'is_used' => $isFullyUsed,
                 'scan_count' => $reservation->scan_count,
-                'scanned_at' => $reservation->scanned_at,
+                'max_scans' => $maxScans,
+                'scanned_at' => $reservation->scanned_at ?? now(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -467,6 +512,9 @@ class ReservationController extends Controller
             'status' => 'canceled',
             'confirmation_token' => null, // Clear token after use
         ]);
+
+        // Release the seats associated with this reservation
+        DB::table('reservation_seats')->where('reservation_id', $reservation->id)->delete();
 
         return response()->json([
             'message' => 'Votre réservation a été annulée avec succès.',

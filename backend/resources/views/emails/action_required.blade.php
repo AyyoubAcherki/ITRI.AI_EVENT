@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Confirmation de réservation</title>
+    <title>Action Requise : Confirmez votre réservation</title>
     <style>
         body {
             font-family: 'Inter', Arial, sans-serif;
@@ -73,6 +73,14 @@
             color: #006AD7;
             font-weight: bold;
         }
+
+        .alert {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -83,18 +91,25 @@
         </div>
         <div class="content">
             <h2>Bonjour {{ $reservation->first_name }} {{ $reservation->last_name }},</h2>
-            <p>Votre inscription a été enregistrée avec succès.</p>
-            <p>N'oubliez pas que votre réservation ne sera définitive qu'à partir du <strong>25 mars</strong>.</p>
+            <p>Le grand jour approche ! C'est le moment de nous confirmer votre présence à l'événement <span class="highlight">AI ITRI NTIC EVENT</span>.</p>
 
-            <p>Vous recevrez un nouvel e-mail le 25 mars contenant un lien pour <strong>confirmer définitivement</strong> votre participation ou pour l'annuler en cas d'imprévu.</p>
+            <p>Veuillez cliquer sur le bouton ci-dessous pour confirmer définitivement votre place :</p>
 
-            <p>En cas de désistement, cette étape nous permettra de libérer votre place pour les personnes sur la liste d'attente.</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ $confirmationUrl }}" class="button" style="background-color: #006AD7; margin-right: 10px;">Je confirme ma participation</a>
+                <a href="{{ $cancellationUrl }}" class="button" style="background-color: #e53e3e;">J'annule ma réservation</a>
+            </div>
+
+            <div class="alert">
+                <strong>Attention :</strong> Si vous ne confirmez pas votre réservation d'ici <strong>48 heures</strong>, votre place sera automatiquement annulée et réattribuée à une personne sur la liste d'attente.
+            </div>
+
+            <p>Une fois confirmé, vous pourrez finaliser et télécharger votre billet d'accès.</p>
 
             <p>Cordialement,<br>L'équipe d'organisation AI ITRI NTIC EVENT</p>
         </div>
         <div class="footer">
             <p>&copy; 2026 AI ITRI NTIC EVENT - Tanger, Morocco</p>
-            <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>
         </div>
     </div>
 </body>

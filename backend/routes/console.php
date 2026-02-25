@@ -17,3 +17,14 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Artisan::command('test:email', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Test email', function ($msg) {
+            $msg->to('ayo.acher@gmail.com')->subject('Test Email from Artisan');
+        });
+        $this->info('Email sent successfully');
+    } catch (\Exception $e) {
+        $this->error('Error: ' . $e->getMessage());
+    }
+})->purpose('Test sending an email to verify SMTP configuration');

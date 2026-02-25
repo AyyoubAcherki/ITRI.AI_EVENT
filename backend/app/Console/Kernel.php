@@ -28,7 +28,10 @@ class Kernel extends ConsoleKernel
     {
         // Final confirmation emails on 16/03/2026 at 09:00
         $schedule->command('app:send-final-confirmations')
-                 ->cron('0 9 16 3 *');
+            ->cron('0 9 16 3 *');
+
+        // Cleanup unconfirmed reservations and notify waitlist
+        $schedule->command('reservations:cleanup-unconfirmed')->daily();
     }
 
     /**
@@ -36,7 +39,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

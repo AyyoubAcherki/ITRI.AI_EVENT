@@ -43,6 +43,9 @@ Route::post('/reservations', [ReservationController::class, 'store']);
 Route::post('/reservations/confirm', [ReservationController::class, 'confirm']);
 Route::post('/reservations/cancel', [ReservationController::class, 'cancel']);
 
+// Waitlist - Public
+Route::post('/waitlist', [\App\Http\Controllers\Api\WaitlistController::class, 'store']);
+
 // Download ticket - Public
 Route::get('/tickets/{ticketCode}/download', [ReservationController::class, 'downloadTicket']);
 
@@ -52,35 +55,35 @@ Route::get('/tickets/{ticketCode}/download', [ReservationController::class, 'dow
 // ==========================================
 
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Auth
     Route::post('/admin/logout', [AuthController::class, 'logout']);
     Route::get('/admin/me', [AuthController::class, 'me']);
-    
+
     // Speakers CRUD (Admin)
     Route::post('/speakers', [SpeakerController::class, 'store']);
     Route::put('/speakers/{speaker}', [SpeakerController::class, 'update']);
     Route::delete('/speakers/{speaker}', [SpeakerController::class, 'destroy']);
-    
+
     // Programs CRUD (Admin)
     Route::get('/admin/programs', [ProgramController::class, 'all']);
     Route::post('/programs', [ProgramController::class, 'store']);
     Route::put('/programs/{program}', [ProgramController::class, 'update']);
     Route::delete('/programs/{program}', [ProgramController::class, 'destroy']);
-    
+
     // Reservations (Admin)
     Route::get('/reservations', [ReservationController::class, 'index']);
     Route::get('/reservations/{reservation}', [ReservationController::class, 'show']);
-    
+
     // QR Validation (Admin) - Higher rate limit for scanning
     Route::middleware('throttle:qr-scan')->group(function () {
         Route::post('/reservations/validate-qr', [ReservationController::class, 'validateQR']);
     });
-    
+
     // Statistics (Admin)
     Route::get('/statistics', [ReservationController::class, 'statistics']);
     Route::get('/scan-statistics', [ReservationController::class, 'scanStatistics']);
-    
+
     // Export (Admin)
     Route::get('/reservations/export', [ReservationController::class, 'export']);
 });

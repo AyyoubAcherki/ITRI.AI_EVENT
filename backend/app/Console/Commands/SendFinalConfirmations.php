@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Reservation;
 use App\Mail\FinalConfirmationMailable;
+use App\Mail\ReservationConfirmationMailable;
 use Illuminate\Support\Facades\Mail;
 
 class SendFinalConfirmations extends Command
@@ -29,8 +30,7 @@ class SendFinalConfirmations extends Command
     public function handle()
     {
         $today = now()->format('Y-m-d');
-        $eventStartDate = '2026-05-14';
-        $reminderDate = date('Y-m-d', strtotime($eventStartDate . ' -10 days')); // 2026-05-04
+        $actionDate = '2026-03-25'; // New requested date for confirmation buttons
         $finalConfirmationDate = '2026-03-16';
 
         // 1. Final Confirmation (on March 16) - for CONFIRMED users
@@ -38,12 +38,11 @@ class SendFinalConfirmations extends Command
             $this->sendFinalNotices();
         }
 
-        // 2. Reminder (10 days before event) - for PENDING users
-        if ($today === $reminderDate) {
-            $this->sendEventReminders();
+        // 2. Action Required Email (March 25) - for PENDING users
+        if ($today === $actionDate) {
+            $this->sendMarch25ActionEmails();
         }
 
-        // For manual testing/triggering if needed, we could add flags
         $this->info("Exécution du cron terminée pour le $today.");
     }
 
@@ -66,26 +65,25 @@ class SendFinalConfirmations extends Command
         }
     }
 
-    protected function sendEventReminders()
+    protected function sendMarch25ActionEmails()
     {
         $reservations = Reservation::where('status', 'pending')
-            ->whereNull('notified_at_reminder')
+            ->whereNull('notified_at_reminder') // Reusing this column for the action email
             ->get();
 
-        $this->info("Envoi de " . $reservations->count() . " emails de rappel (10 jours avant)...");
+        $this->info("Envoi de " . $reservations->count() . " emails d'action requise (25 Mars)...");
 
         foreach ($reservations as $reservation) {
             try {
                 $confirmationUrl = config('app.frontend_url', 'http://localhost:3000') . '/confirm-reservation?token=' . $reservation->confirmation_token;
                 $cancellationUrl = config('app.frontend_url', 'http://localhost:3000') . '/cancel-reservation?token=' . $reservation->confirmation_token;
-                
-                // We reuse the same mailable but could use a different one if needed
-                Mail::to($reservation->email)->send(new ReservationConfirmationMailable($reservation, $confirmationUrl, $cancellationUrl));
-                
+
+                Mail::to($reservation->email)->send(new \App\Mail\ActionRequiredMailable($reservation, $confirmationUrl, $cancellationUrl));
+
                 $reservation->update(['notified_at_reminder' => now()]);
-                $this->line("Rappel envoyé à: {$reservation->email}");
+                $this->line("Email d'action envoyé à: {$reservation->email}");
             } catch (\Exception $e) {
-                $this->error("Erreur de rappel pour {$reservation->email}: " . $e->getMessage());
+                $this->error("Erreur d'action pour {$reservation->email}: " . $e->getMessage());
             }
         }
     }
