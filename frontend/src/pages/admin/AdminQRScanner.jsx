@@ -64,7 +64,7 @@ function AdminQRScanner() {
       }
 
       html5QrCode.current = new Html5Qrcode("qr-reader");
-      
+
       const config = {
         fps: 10,
         qrbox: { width: 300, height: 300 },
@@ -77,7 +77,7 @@ function AdminQRScanner() {
         onScanSuccess,
         onScanError
       );
-      
+
       setScanning(true);
       setError(null);
     } catch (err) {
@@ -104,22 +104,22 @@ function AdminQRScanner() {
     if (isProcessing || decodedText === lastScannedCode) {
       return;
     }
-    
+
     // Immediately stop scanning and set processing state
     setIsProcessing(true);
     setLastScannedCode(decodedText);
-    
+
     // Clear any existing timeout
     if (scanTimeoutRef.current) {
       clearTimeout(scanTimeoutRef.current);
     }
-    
+
     // Stop scanner immediately
     await stopScanner();
-    
+
     setScanResult(decodedText);
     validateQRCode(decodedText);
-    
+
     // Reset processing after 3 seconds to allow for new scans
     scanTimeoutRef.current = setTimeout(() => {
       setIsProcessing(false);
@@ -137,7 +137,7 @@ function AdminQRScanner() {
     if (loading) {
       return;
     }
-    
+
     setLoading(true);
     setValidationResult(null);
 
@@ -174,7 +174,7 @@ function AdminQRScanner() {
     if (loading) {
       return;
     }
-    
+
     setLoading(true);
 
     try {
@@ -247,13 +247,13 @@ function AdminQRScanner() {
     if (scanTimeoutRef.current) {
       clearTimeout(scanTimeoutRef.current);
     }
-    
+
     setScanResult(null);
     setValidationResult(null);
     setError(null);
     setIsProcessing(false);
     setLastScannedCode(null);
-    
+
     if (selectedCamera) {
       await startScanner(selectedCamera);
     }
@@ -264,7 +264,7 @@ function AdminQRScanner() {
     if (scanTimeoutRef.current) {
       clearTimeout(scanTimeoutRef.current);
     }
-    
+
     setSelectedCamera(cameraId);
     setIsProcessing(false);
     setLastScannedCode(null);
@@ -293,15 +293,15 @@ function AdminQRScanner() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* QR Scanner */}
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-accent mb-4">Scan Ticket QR Code</h2>
-            
+            <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Scan Ticket QR Code</h2>
+
             {/* Camera Selection */}
             {cameras.length > 1 && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Camera:
                 </label>
-                <select 
+                <select
                   value={selectedCamera}
                   onChange={(e) => handleCameraChange(e.target.value)}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
@@ -321,7 +321,7 @@ function AdminQRScanner() {
                 {error}
               </div>
             )}
-            
+
             {!scanResult ? (
               <div>
                 <div id="qr-reader" className="w-full"></div>
@@ -373,7 +373,7 @@ function AdminQRScanner() {
                   value={manualCode}
                   onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                   placeholder="Enter ticket code (e.g., ABC12345)"
-                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary text-gray-900 font-semibold"
                 />
                 <button
                   type="submit"
@@ -387,7 +387,7 @@ function AdminQRScanner() {
 
           {/* Validation Result */}
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-accent mb-4">Validation Result</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Validation Result</h2>
 
             {loading && (
               <div className="text-center py-8">
@@ -406,11 +406,10 @@ function AdminQRScanner() {
             )}
 
             {!loading && validationResult && (
-              <div className={`p-6 rounded-lg ${
-                validationResult.valid 
-                  ? 'bg-green-100 border-2 border-green-500' 
-                  : 'bg-red-100 border-2 border-red-500'
-              }`}>
+              <div className={`p-6 rounded-lg ${validationResult.valid
+                ? 'bg-green-100 border-2 border-green-500'
+                : 'bg-red-100 border-2 border-red-500'
+                }`}>
                 {/* Status Icon */}
                 <div className="text-center mb-4">
                   {validationResult.valid ? (
@@ -429,15 +428,13 @@ function AdminQRScanner() {
                 </div>
 
                 {/* Status Message */}
-                <h3 className={`text-2xl font-bold text-center mb-4 ${
-                  validationResult.valid ? 'text-green-700' : 'text-red-700'
-                }`}>
+                <h3 className={`text-2xl font-bold text-center mb-4 ${validationResult.valid ? 'text-green-700' : 'text-red-700'
+                  }`}>
                   {validationResult.valid ? 'VALID TICKET' : 'INVALID TICKET'}
                 </h3>
 
-                <p className={`text-center mb-4 ${
-                  validationResult.valid ? 'text-green-600' : 'text-red-600'
-                }`}>
+                <p className={`text-center mb-4 ${validationResult.valid ? 'text-green-600' : 'text-red-600'
+                  }`}>
                   {validationResult.message}
                 </p>
 
@@ -452,14 +449,19 @@ function AdminQRScanner() {
                       <p><span className="font-semibold">Role:</span> {validationResult.reservation.role}</p>
                       <p><span className="font-semibold">Days:</span> {validationResult.reservation.days?.join(', ')}</p>
                       <p><span className="font-semibold">Ticket Code:</span> {validationResult.reservation.ticket_code}</p>
+                      {validationResult.max_scans && (
+                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 font-semibold">
+                          ⚠️ Scans Type: {validationResult.scan_count} / {validationResult.max_scans} utilisés
+                        </div>
+                      )}
                     </div>
-                    
-                    {/* Mark as Used button for valid, unused tickets */}
-                    {validationResult.valid && !validationResult.reservation.is_used && (
+
+                    {/* Mark as Used button for tickets that still have scans allowed */}
+                    {validationResult.valid && !validationResult.is_used && (
                       <div className="mt-4">
                         <button
                           onClick={() => markTicketAsUsed(validationResult.reservation.ticket_code)}
-                          className="w-full bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700"
+                          className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
                         >
                           Mark as Used (Check In)
                         </button>
@@ -474,13 +476,13 @@ function AdminQRScanner() {
 
         {/* Instructions */}
         <div className="mt-8 bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-bold text-accent mb-4">Instructions</h2>
+          <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Instructions</h2>
           <ul className="list-disc list-inside space-y-2 text-gray-700">
             <li>Point the camera at the QR code on the attendee's ticket</li>
             <li>The system will automatically detect and validate the QR code</li>
             <li>Green result = Valid ticket (attendee can enter)</li>
-            <li>Red result = Invalid or already used ticket</li>
-            <li>Once validated, the ticket will be marked as "USED" and cannot be used again</li>
+            <li>Red result = Invalid or fully used ticket (all allowed scans depleted)</li>
+            <li>The ticket allows 1 scan per booked day (e.g., 3 days = 3 scans permitted)</li>
           </ul>
         </div>
       </div>

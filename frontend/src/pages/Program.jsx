@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getPrograms } from '../utils/api';
+import './Program.css';
 
 function Program() {
   const [programs, setPrograms] = useState([]);
@@ -33,37 +34,38 @@ function Program() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl text-primary font-semibold">Loading program...</div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-2xl text-blue-500 font-semibold animate-pulse">Loading program...</div>
       </div>
     );
   }
 
+  const currentPrograms = filterProgramsByDay(selectedDay);
+
   return (
-    <div className="min-h-screen py-16 pt-32">
+    <div className="program-page pt-32 pb-24">
       {/* Header */}
-      <div className="container mx-auto px-6 mb-40 text-center">
-        <h1 className="text-5xl font-bold text-center text-accent mb-8">
+      <div className="container mx-auto px-6 mb-24 text-center">
+        <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-8 tracking-tight">
           Event Program
         </h1>
-        <p className="text-lg text-center text-gray-700 max-w-4xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
           Explore our comprehensive 3-day program featuring workshops, keynotes, and
           networking sessions.
         </p>
       </div>
 
       {/* Day Selector */}
-      <div className="container mx-auto px-6 mt-16 mb-20 flex justify-center">
-        <div className="flex justify-center gap-6 flex-wrap">
+      <div className="container mx-auto px-6 mb-20">
+        <div className="flex justify-center gap-4 flex-wrap">
           {['Day 1', 'Day 2', 'Day 3'].map((day) => (
             <button
               key={day}
               onClick={() => setSelectedDay(day)}
-              className={`px-10 py-4 rounded-lg font-bold text-lg transition-all ${
-                selectedDay === day
-                  ? 'bg-primary text-white shadow-lg transform scale-105'
-                  : 'bg-white text-primary border-2 border-primary hover:bg-primary hover:text-white'
-              }`}
+              className={`px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 ${selectedDay === day
+                  ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)] transform scale-105 border-transparent'
+                  : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-white hover:border-slate-500'
+                }`}
             >
               {day}
             </button>
@@ -71,38 +73,38 @@ function Program() {
         </div>
       </div>
 
-      {/* Program Schedule */}
-      <div className="container mx-auto px-6 mt-16">
-        {filterProgramsByDay(selectedDay).length === 0 ? (
+      {/* Program Schedule Timeline */}
+      <div className="container mx-auto px-4">
+        {currentPrograms.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-slate-500">
               Program for {selectedDay} will be announced soon.
             </p>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto space-y-6">
-            {filterProgramsByDay(selectedDay).map((session) => (
-              <div
-                key={session.id}
-                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transform hover:-translate-y-1 transition-all"
-              >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  {/* Time */}
-                  <div className="mb-4 md:mb-0">
-                    <div className="inline-block bg-primary text-white px-4 py-2 rounded-lg font-bold">
-                      {session.time}
-                    </div>
-                  </div>
+          <div className="timeline-container">
+            {currentPrograms.map((session, index) => {
+              // Alternate left and right blocks for desktop view
+              const positionClass = index % 2 === 0 ? 'left' : 'right';
 
-                  {/* Session Details */}
-                  <div className="flex-1 md:px-6">
-                    <h3 className="text-2xl font-bold text-accent mb-2">
+              return (
+                <div key={session.id} className={`timeline-item ${positionClass}`}>
+                  <div className="timeline-content">
+                    {/* Time Badge inside card for mobile, floating for desktop */}
+                    <div className="mb-4">
+                      <span className="inline-block bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full text-sm font-bold tracking-wider">
+                        {session.time}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
                       {session.title}
                     </h3>
+
                     {session.speaker && (
-                      <div className="flex items-center text-gray-700">
+                      <div className="flex items-start text-slate-400 mt-4 pt-4 border-t border-slate-700/50">
                         <svg
-                          className="w-5 h-5 mr-2"
+                          className="w-5 h-5 mr-3 mt-0.5 text-blue-500 shrink-0"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -114,22 +116,17 @@ function Program() {
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                           />
                         </svg>
-                        <span className="font-semibold">{session.speaker.name}</span>
-                        <span className="mx-2">•</span>
-                        <span className="text-primary">{session.speaker.job_title}</span>
+                        <div>
+                          <p className="font-semibold text-slate-200">{session.speaker.name}</p>
+                          <p className="text-sm text-slate-500">{session.speaker.job_title}</p>
+                        </div>
                       </div>
                     )}
                   </div>
-
-                  {/* Day Badge */}
-                  <div className="mt-4 md:mt-0">
-                    <span className="inline-block bg-secondary text-accent px-4 py-2 rounded-lg font-semibold">
-                      {session.day}
-                    </span>
-                  </div>
+                  <div className="timeline-dot"></div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

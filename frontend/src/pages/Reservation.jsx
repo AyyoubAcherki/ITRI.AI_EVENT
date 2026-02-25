@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSeats, createReservation } from '../utils/api';
+import { getSeats, createReservation, submitWaitlist } from '../utils/api';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 
@@ -11,6 +11,20 @@ function Reservation() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showWaitlistForm, setShowWaitlistForm] = useState(false);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+
+  // Compute if all regular seats are sold out
+  const isSoldOut = () => {
+    // If we haven't loaded seats yet, don't show sold out
+    if (Object.keys(leftBlock).length === 0 && Object.keys(rightBlock).length === 0) return false;
+
+    // Check if there's any available seat that is NOT a VIP seat
+    const hasLeftAvailable = Object.values(leftBlock).flat().some(seat => seat.is_available && seat.type !== 'vip');
+    const hasRightAvailable = Object.values(rightBlock).flat().some(seat => seat.is_available && seat.type !== 'vip');
+
+    return !hasLeftAvailable && !hasRightAvailable;
+  };
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -52,11 +66,11 @@ function Reservation() {
       return;
     }
 
-    // Toggle seat selection
+    // Toggle seat selection (Single seat only)
     if (selectedSeats.find(s => s.id === seat.id)) {
-      setSelectedSeats(selectedSeats.filter(s => s.id !== seat.id));
+      setSelectedSeats([]);
     } else {
-      setSelectedSeats([...selectedSeats, seat]);
+      setSelectedSeats([seat]);
     }
   };
 
@@ -174,11 +188,44 @@ function Reservation() {
     }
   };
 
+  const handleWaitlistSubmit = async (e) => {
+    e.preventDefault();
+
+    if (selectedDays.length === 0) {
+      alert('Veuillez sélectionner au moins un jour');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const waitlistData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+        institution_name: formData.institution || null,
+        days: selectedDays,
+      };
+
+      await submitWaitlist(waitlistData);
+      setWaitlistSuccess(true);
+      setShowWaitlistForm(false);
+      window.scrollTo(0, 0);
+    } catch (error) {
+      console.error('Error joining waitlist:', error);
+      alert(error.response?.data?.message || 'Une erreur est survenue lors de l\'inscription sur la liste d\'attente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const generatePDFTicket = async (reservationData) => {
-    const doc = new jsPDF();
+    // Landscape format, 210x90mm ticket size
+    const doc = new jsPDF('l', 'mm', [210, 90]);
 
     // QR Code data - use the ticket_code from server response
-    // Sometimes it's at response.data.ticket_code, sometimes response.data.reservation.ticket_code
     const ticketCode = reservationData.ticket_code || reservationData.reservation?.ticket_code || 'ITRI-UNKNOWN';
 
     const qrData = JSON.stringify({
@@ -192,118 +239,121 @@ function Reservation() {
     const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
       width: 200,
       margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
     });
 
-    const primaryColor = [33, 39, 123]; // #21277B
-    const accentColor = [0, 106, 215];  // #006AD7
+    // Background: Deep Dark Slate (#0f172a)
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 90, 'F');
 
-    // Background Header
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(0, 0, 210, 40, 'F');
+    // Left Border Accent: ITRI primary blue (#006AD7)
+    doc.setFillColor(0, 106, 215);
+    doc.rect(0, 0, 4, 90, 'F');
 
-    // Header Text
+    // --- LEFT SECTION (Main Ticket Details) 0 to 150mm ---
+
+    // Main Title
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(28);
-    doc.text('AI ITRI NTIC EVENT', 105, 20, { align: 'center' });
-    doc.setFontSize(12);
+    doc.setFontSize(24);
+    doc.text('AI ITRI NTIC EVENT', 15, 22);
+
+    // Event Date & Location
+    doc.setFontSize(10);
+    doc.setTextColor(234, 179, 8); // Yellow 500
+    doc.text('1 - 3 AVRIL 2026 | TANGER, MAROC', 15, 30);
+
+    // "ISTA NTIC" Badge
+    doc.setFillColor(220, 38, 38); // Red 600
+    doc.roundedRect(15, 34, 30, 6, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.text('ISTA NTIC', 30, 38.2, { align: 'center' });
+
+    // Green dot
+    doc.setFillColor(22, 163, 74); // Green 600
+    doc.circle(18, 37, 1, 'F');
+
+    // Attendee Info Box (Slate 800)
+    doc.setFillColor(30, 41, 59);
+    doc.setDrawColor(51, 65, 85);
+    doc.roundedRect(15, 45, 125, 35, 2, 2, 'FD');
+
+    // Labels
+    doc.setTextColor(148, 163, 184); // Slate 400
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('14 - 16 MAI 2026 | TANGER, MOROCCO', 105, 30, { align: 'center' });
+    doc.text('PARTICIPANT', 20, 52);
+    doc.text('RÔLE', 95, 52);
+    doc.text('ACCÈS', 20, 67);
+    doc.text('SIÈGES', 95, 67);
 
+    // Values
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    const fullName = `${formData.first_name} ${formData.last_name}`;
+    doc.text(fullName.length > 30 ? fullName.substring(0, 27) + '...' : fullName, 20, 58);
+    doc.text(formData.role === 'student' ? 'Étudiant' : 'Employé', 95, 58);
 
-    // Ticket Border
-    doc.setDrawColor(0, 106, 215);
-    doc.setLineWidth(1);
-    doc.rect(10, 45, 190, 240);
-
-    // Attendee Information
-    doc.setTextColor(33, 39, 123); // #21277B
-    doc.setFontSize(16);
-    doc.text('TICKET DE RÉSERVATION', 105, 60, { align: 'center' });
-
-    // Horizontal Line
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.5);
-    doc.line(20, 65, 190, 65);
-
-    let yPos = 80;
-    const leftMargin = 25;
-    const valueMargin = 80;
-    const lineHeight = 12;
-
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-
-    const drawField = (label, value, isLink = false) => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(label, leftMargin, yPos);
-      doc.setFont('helvetica', 'normal');
-      if (isLink) {
-        doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-        doc.text(value, valueMargin, yPos);
-        doc.setTextColor(100, 100, 100);
-      } else {
-        doc.setTextColor(0, 0, 0);
-        doc.text(value, valueMargin, yPos);
-        doc.setTextColor(100, 100, 100);
-      }
-      yPos += lineHeight;
-    };
-
-    drawField('Participant:', `${formData.first_name} ${formData.last_name}`);
-    drawField('Email:', formData.email);
-    drawField('Rôle:', formData.role === 'student' ? 'Étudiant' : 'Employé');
-    drawField('Institution:', formData.institution || 'N/A');
-
-    yPos += 5;
     const dayLabels = selectedDays.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(', ');
-    drawField('Accès:', dayLabels);
+    doc.text(dayLabels, 20, 73);
 
+    doc.setTextColor(234, 179, 8); // Yellow 500 for seats
+    doc.text(selectedSeats.map(s => s.seat_number).join(', '), 95, 73);
+
+    // Watermark Logo
+    doc.setTextColor(51, 65, 85); // Slate 700
+    doc.setGState(new doc.GState({ opacity: 0.15 }));
+    doc.setFontSize(40);
+    doc.text('ITRI TECH', 75, 40, { align: 'center', angle: -20 });
+    doc.setGState(new doc.GState({ opacity: 1.0 }));
+
+    // --- PERFORATION LINE ---
+    doc.setDrawColor(71, 85, 105); // Slate 600
+    doc.setLineWidth(0.5);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(150, 0, 150, 90);
+    doc.setLineDashPattern([], 0); // Reset
+
+    // --- RIGHT SECTION (Stub) 150 to 210mm ---
+
+    // Stub Header
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-    drawField('Sièges:', selectedSeats.map(s => s.seat_number).join(', '));
+    doc.text('ADMISSION', 180, 16, { align: 'center' });
 
-    yPos += 10;
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text('CODE DU TICKET:', 105, yPos, { align: 'center' });
-    yPos += 8;
-    doc.setFontSize(16);
-    doc.text(ticketCode, 105, yPos, { align: 'center' });
-
-    // QR Code Section
-    const qrSize = 50;
-    const qrX = (210 - qrSize) / 2;
-    const qrY = yPos + 10;
+    // QR Code Background (white box)
+    const qrSize = 40;
+    const qrX = 160;
+    const qrY = 22;
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 4, 2, 2, 'F');
     doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
 
-    doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Scannez pour validation à l\'entrée', 105, qrY + qrSize + 10, { align: 'center' });
-
-    // Footer
-    doc.setFillColor(245, 247, 250);
-    doc.rect(0, 260, 210, 37, 'F');
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('IMPORTANT', 105, 270, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('Veuillez présenter ce ticket (numérique ou imprimé) à l\'entrée.', 105, 277, { align: 'center' });
-    doc.text('Une pièce d\'identité peut vous être demandée.', 105, 283, { align: 'center' });
-
+    // Ticket ID
     doc.setFontSize(8);
-    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}`, 105, 292, { align: 'center' });
+    doc.setTextColor(148, 163, 184); // Slate 400
+    doc.setFont('helvetica', 'normal');
+    doc.text('TICKET NO.', 180, 72, { align: 'center' });
 
-    // Watermark (subtle)
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setGState(new doc.GState({ opacity: 0.05 }));
-    doc.setFontSize(60);
-    doc.text('ANTIGRAVITY', 105, 150, { align: 'center', angle: 45 });
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(ticketCode, 180, 78, { align: 'center' });
+
+    // Scanning Instruction
+    doc.setFontSize(6);
+    doc.setTextColor(100, 116, 139); // Slate 500
+    doc.setFont('helvetica', 'normal');
+    doc.text('Scannez à l\'entrée. Billet non transférable.', 180, 85, { align: 'center' });
 
     // Save PDF
-    const fileName = `Ticket_ITRI_2026_${formData.last_name}.pdf`;
+    const fileName = `Ticket_ITRI_2026_${formData.last_name.replace(/\s+/g, '_')}.pdf`;
     doc.save(fileName);
   };
 
@@ -320,11 +370,11 @@ function Reservation() {
 
     // Selected seats - bright blue
     if (selectedSeats.find(s => s.id === seat.id)) {
-      return 'bg-[#006AD7] text-white transform scale-110';
+      return 'bg-primary text-white transform scale-110';
     }
 
     // Available seats - light gray
-    return 'bg-gray-200 hover:bg-[#9AD9EA] cursor-pointer text-gray-700';
+    return 'bg-slate-700 hover:bg-primary cursor-pointer text-slate-300';
   };
 
   const renderSeatBlock = (blockData, blockName) => {
@@ -358,13 +408,13 @@ function Reservation() {
   };
 
   return (
-    <div className="min-h-screen py-16 pt-32 bg-gray-50">
+    <div className="min-h-screen py-16 pt-32 bg-light">
       {/* Header */}
       <div className="container mx-auto px-6 mb-12 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-[#21277B] mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold text-dark mb-4">
           Réservez Votre Siège
         </h1>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+        <p className="text-lg text-muted max-w-3xl mx-auto">
           Sélectionnez votre jour et votre siège préféré, puis remplissez le formulaire pour compléter votre réservation.
         </p>
       </div>
@@ -385,16 +435,46 @@ function Reservation() {
         </div>
       )}
 
+      {/* Waitlist Success */}
+      {waitlistSuccess && (
+        <div className="container mx-auto px-6 mb-8">
+          <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-8 rounded-lg text-center animate-fadeIn">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-200 mb-4 text-green-600">
+              <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="font-bold text-2xl mb-2">Inscription Réussie !</p>
+            <p className="text-lg">Vous êtes bien inscrit(e) sur la liste d'attente pour l'événement. Nous vous contacterons par e-mail dès qu'une place se libérera.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Waitlist Success */}
+      {waitlistSuccess && (
+        <div className="container mx-auto px-6 mb-8">
+          <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-8 rounded-lg text-center animate-fadeIn">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-200 mb-4 text-green-600">
+              <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="font-bold text-2xl mb-2">Inscription Réussie !</p>
+            <p className="text-lg">Vous êtes bien inscrit(e) sur la liste d'attente pour l'événement. Nous vous contacterons par e-mail dès qu'une place se libérera.</p>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Seat Selection */}
           <div>
-            <div className="bg-white p-6 rounded-xl shadow-lg">
-              <h2 className="text-2xl font-bold text-[#21277B] mb-6 text-center">1. Choisissez votre siège</h2>
+            <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+              <h2 className="text-2xl font-bold text-blue-300 mb-6 text-center">1. Choisissez votre siège</h2>
 
               {/* Day Selector */}
               <div className="mb-6">
-                <label className="block text-sm font-semibold mb-3 text-gray-700">Sélectionnez le(s) jour(s):</label>
+                <label className="block text-sm font-semibold mb-3 text-muted">Sélectionnez le(s) jour(s):</label>
                 <div className="flex gap-2 flex-wrap">
                   {[
                     { value: 'day1', label: 'Jour 1' },
@@ -406,8 +486,8 @@ function Reservation() {
                       type="button"
                       onClick={() => handleDayToggle(day.value)}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedDays.includes(day.value)
-                        ? 'bg-[#006AD7] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-primary text-white border border-primary'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
                         }`}
                     >
                       {day.label}
@@ -417,8 +497,8 @@ function Reservation() {
                     type="button"
                     onClick={() => handleDayToggle('all')}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedDays.length === 3
-                      ? 'bg-[#21277B] text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-slate-900 text-white border border-slate-700'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
                       }`}
                   >
                     Les 3 Jours
@@ -427,32 +507,51 @@ function Reservation() {
               </div>
 
               {/* Seat Legend */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-6 p-4 bg-slate-900 rounded-lg border border-slate-700">
                 <div className="flex flex-wrap gap-4 justify-center">
                   <div className="flex items-center">
-                    <div className="w-6 h-6 bg-gray-200 rounded mr-2"></div>
-                    <span className="text-sm">Libre</span>
+                    <div className="w-6 h-6 bg-slate-700 rounded mr-2"></div>
+                    <span className="text-sm text-slate-300">Libre</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-6 h-6 bg-[#006AD7] rounded mr-2"></div>
-                    <span className="text-sm">Sélectionné</span>
+                    <div className="w-6 h-6 bg-primary rounded mr-2"></div>
+                    <span className="text-sm text-slate-300">Sélectionné</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-6 h-6 bg-gray-400 rounded mr-2"></div>
-                    <span className="text-sm">Réservé</span>
+                    <div className="w-6 h-6 bg-gray-600 rounded mr-2"></div>
+                    <span className="text-sm text-slate-300">Réservé</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-6 h-6 bg-[#21277B] rounded mr-2"></div>
-                    <span className="text-sm">VIP</span>
+                    <span className="text-sm text-slate-300">VIP</span>
                   </div>
                 </div>
               </div>
 
-              {/* Seat Map */}
+              {/* Seat Map or Waitlist Alert */}
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#006AD7] mx-auto"></div>
                   <p className="mt-4 text-gray-600">Chargement des sièges...</p>
+                </div>
+              ) : isSoldOut() ? (
+                <div className="bg-slate-800 p-8 rounded-xl border border-yellow-500/50 text-center animate-fadeIn">
+                  <div className="text-yellow-400 mb-4">
+                    <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Tous les billets sont épuisés :(</h3>
+                  <p className="text-slate-300 mb-6 text-sm">Il n'y a plus de places libres pour ce(s) jour(s). Les inscriptions classiques sont fermées pour ce jour.</p>
+                  <button
+                    onClick={() => {
+                      setShowWaitlistForm(true);
+                      setSelectedSeats([]); // Clear any ghost selections
+                    }}
+                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-slate-900 font-bold py-3 px-8 rounded-full shadow-lg transition-all"
+                  >
+                    S'inscrire sur la liste d'attente
+                  </button>
                 </div>
               ) : (
                 <div className="flex gap-8 justify-center">
@@ -474,13 +573,15 @@ function Reservation() {
 
           {/* Reservation Form */}
           <div>
-            <div className="bg-white p-6 rounded-xl shadow-lg">
-              <h2 className="text-2xl font-bold text-[#21277B] mb-6 text-center">2. Vos Informations</h2>
+            <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+              <h2 className="text-2xl font-bold text-blue-300 mb-6 text-center">
+                {showWaitlistForm ? "2. Informations pour Liste d'Attente" : "2. Vos Informations"}
+              </h2>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={showWaitlistForm ? handleWaitlistSubmit : handleSubmit} className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                    <label className="block text-sm font-semibold mb-2 text-slate-300">
                       Prénom *
                     </label>
                     <input
@@ -489,55 +590,55 @@ function Reservation() {
                       value={formData.first_name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006AD7] focus:border-transparent"
+                      className="w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">Nom *</label>
+                    <label className="block text-sm font-semibold mb-2 text-slate-300">Nom *</label>
                     <input
                       type="text"
                       name="last_name"
                       value={formData.last_name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006AD7] focus:border-transparent"
+                      className="w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Email *</label>
+                  <label className="block text-sm font-semibold mb-2 text-slate-300">Email *</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006AD7] focus:border-transparent"
+                    className="w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Téléphone *</label>
+                  <label className="block text-sm font-semibold mb-2 text-slate-300">Téléphone *</label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006AD7] focus:border-transparent"
+                    className="w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Rôle *</label>
+                  <label className="block text-sm font-semibold mb-2 text-slate-300">Rôle *</label>
                   <select
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006AD7] focus:border-transparent"
+                    className="w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
                     <option value="student">Étudiant</option>
                     <option value="employee">Employé</option>
@@ -546,7 +647,7 @@ function Reservation() {
 
                 {formData.role === 'student' && (
                   <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                    <label className="block text-sm font-semibold mb-2 text-slate-300">
                       Nom de l'institution *
                     </label>
                     <input
@@ -555,35 +656,47 @@ function Reservation() {
                       value={formData.institution}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006AD7] focus:border-transparent"
+                      className="w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 )}
 
                 <div className="pt-2">
-                  <p className="text-sm text-gray-600 mb-4">
-                    <span className="font-semibold">Jour(s) sélectionné(s):</span>{' '}
-                    <span className="text-[#006AD7] font-bold">
+                  <p className="text-sm text-muted mb-4">
+                    <span className="font-semibold text-slate-300">Jour(s) sélectionné(s):</span>{' '}
+                    <span className="text-primary font-bold">
                       {selectedDays.length === 3
                         ? 'Les 3 Jours'
                         : selectedDays.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(', ')}
                     </span>
                   </p>
-                  <p className="text-sm text-gray-600 mb-4">
-                    <span className="font-semibold">Siège(s) sélectionné(s):</span>{' '}
-                    <span className="text-[#006AD7] font-bold">
-                      {selectedSeats.length > 0 ? selectedSeats.map(s => s.seat_number).join(', ') : 'Aucun'}
-                    </span>
-                  </p>
+                  {!showWaitlistForm && (
+                    <p className="text-sm text-muted mb-4">
+                      <span className="font-semibold text-slate-300">Siège(s) sélectionné(s):</span>{' '}
+                      <span className="text-primary font-bold">
+                        {selectedSeats.length > 0 ? selectedSeats.map(s => s.seat_number).join(', ') : 'Aucun'}
+                      </span>
+                    </p>
+                  )}
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={selectedSeats.length === 0 || submitting}
-                  className="w-full bg-[#006AD7] text-white py-3 rounded-lg font-bold text-lg hover:bg-[#21277B] disabled:bg-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all"
-                >
-                  {submitting ? 'Traitement...' : 'Compléter la Réservation'}
-                </button>
+                {showWaitlistForm ? (
+                  <button
+                    type="submit"
+                    disabled={submitting || selectedDays.length === 0}
+                    className="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold text-lg hover:bg-yellow-600 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all"
+                  >
+                    {submitting ? 'Inscription...' : 'Rejoindre la liste d\'attente'}
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={selectedSeats.length === 0 || submitting}
+                    className="w-full bg-primary text-white py-3 rounded-lg font-bold text-lg hover:bg-opacity-90 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all"
+                  >
+                    {submitting ? 'Traitement...' : 'Compléter la Réservation'}
+                  </button>
+                )}
               </form>
             </div>
           </div>

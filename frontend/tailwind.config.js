@@ -7,12 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Custom colors for AI ITRI NTIC EVENT 2026
-        primary: '#006AD7',
-        secondary: '#9AD9EA',
-        dark: '#21277B',
-        light: '#FFFFFF',
-        muted: '#5F83B1',
+        // Dark theme colors for AI ITRI NTIC EVENT 2026
+        primary: '#3b82f6',
+        secondary: '#93c5fd',
+        dark: '#bfdbfe',
+        light: '#0f172a',
+        muted: '#94a3b8',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

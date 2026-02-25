@@ -30,6 +30,7 @@ export const getSeats = (day = '') => api.get(`/seats${day ? `?day=${day}` : ''}
 export const createReservation = (data) => api.post('/reservations', data);
 export const confirmReservation = (token) => api.post('/reservations/confirm', { token });
 export const cancelReservation = (token) => api.post('/reservations/cancel', { token });
+export const submitWaitlist = (data) => api.post('/waitlist', data);
 
 // Admin Authentication
 export const adminLogin = (credentials) => api.post('/admin/login', credentials);

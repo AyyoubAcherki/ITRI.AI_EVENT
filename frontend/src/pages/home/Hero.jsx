@@ -5,7 +5,6 @@ import './HeroAnimation.css';
 
 export default function Hero() {
   const navigate = useNavigate();
-  console.log('Hero component rendered');
 
   return (
     <section className="hero-section">
