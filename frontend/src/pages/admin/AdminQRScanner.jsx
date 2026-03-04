@@ -273,217 +273,326 @@ function AdminQRScanner() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFC]">
       {/* Header */}
-      <header className="bg-white shadow-md">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-primary">QR Code Scanner</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shadow-lg shadow-secondary/20">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1l7 7m2 2l-2 2m-2 2l-7 7m-1-7l-7 7m-2-2l2-2m2-2l7-7" />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-secondary to-primary uppercase tracking-tighter">
+                Scanner QR Code
+              </h1>
+            </div>
             <Link
               to="/admin/dashboard"
-              className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-accent"
+              className="text-muted hover:text-secondary font-bold flex items-center gap-2 transition-all hover:-translate-x-1"
             >
-              Back to Dashboard
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Tableau de bord
             </Link>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* QR Scanner */}
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Scan Ticket QR Code</h2>
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
+          {/* QR Scanner Section */}
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
+            <h2 className="text-xl font-black text-gray-800 flex items-center gap-3">
+              <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm italic">01</span>
+              Numériser le billet
+            </h2>
 
             {/* Camera Selection */}
             {cameras.length > 1 && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Camera:
+              <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+                <label className="block text-xs font-black text-muted uppercase mb-3 tracking-widest">
+                  Choisir la Caméra
                 </label>
-                <select
-                  value={selectedCamera}
-                  onChange={(e) => handleCameraChange(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
-                >
-                  {cameras.map((camera, index) => (
-                    <option key={camera.id} value={camera.id}>
-                      {camera.label || `Camera ${index + 1}`}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedCamera}
+                    onChange={(e) => handleCameraChange(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-secondary/10 focus:border-secondary transition-all outline-none appearance-none"
+                  >
+                    {cameras.map((camera, index) => (
+                      <option key={camera.id} value={camera.id}>
+                        {camera.label || `Caméra ${index + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Error Display */}
             {error && (
-              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                {error}
+              <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold animate-shake">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </div>
               </div>
             )}
 
-            {!scanResult ? (
-              <div>
-                <div id="qr-reader" className="w-full"></div>
-                {scanning && (
-                  <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600 mb-2">Point the camera at a QR code to scan</p>
-                    <button
-                      onClick={() => stopScanner()}
-                      className="bg-red-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-600"
-                    >
-                      Stop Scanning
-                    </button>
-                  </div>
-                )}
-                {!scanning && !error && (
-                  <div className="text-center mt-4">
-                    <button
-                      onClick={handleRestartScan}
-                      className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-accent"
-                    >
-                      Start Camera
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="mb-4">
-                  <svg className="w-16 h-16 mx-auto text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-gray-600">QR Code scanned successfully!</p>
+            {/* QR Viewer Area */}
+            <div className="relative group">
+              {!scanResult ? (
+                <div className="rounded-3xl overflow-hidden border-4 border-gray-100 bg-gray-50 relative aspect-square md:aspect-video flex items-center justify-center">
+                  <div id="qr-reader" className="w-full h-full"></div>
+
+                  {scanning && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <div className="w-64 h-64 border-2 border-white/50 rounded-3xl relative">
+                        <div className="absolute inset-0 border-2 border-secondary rounded-3xl animate-pulse"></div>
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-1 bg-secondary rounded-full"></div>
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-1 bg-secondary rounded-full"></div>
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-secondary rounded-full"></div>
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-secondary rounded-full"></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!scanning && !error && (
+                    <div className="text-center p-8">
+                      <div className="w-20 h-20 bg-gray-200/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        </svg>
+                      </div>
+                      <button
+                        onClick={handleRestartScan}
+                        className="bg-secondary text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-secondary/20 hover:bg-primary transition-all active:scale-95"
+                      >
+                        Activer Caméra
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={handleRestartScan}
-                  className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-accent"
-                >
-                  Scan Again
-                </button>
-              </div>
-            )}
+              ) : (
+                <div className="rounded-3xl border-4 border-green-100 bg-green-50 aspect-square md:aspect-video flex flex-col items-center justify-center text-center p-10 animate-in zoom-in-95 duration-500">
+                  <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-xl shadow-green-200 mb-6 animate-bounce">
+                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-black text-green-700 mb-2">Billet Détecté !</h3>
+                  <p className="text-green-600 font-bold mb-8 text-sm uppercase tracking-wider">Analyse des données en cours...</p>
+                  <button
+                    onClick={handleRestartScan}
+                    className="bg-green-600 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-green-200 hover:bg-green-700 transition-all active:scale-95"
+                  >
+                    Nouveau Scan
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Manual Entry */}
-            <div className="mt-6 pt-6 border-t">
-              <h3 className="font-bold text-gray-700 mb-3">Or Enter Ticket Code Manually</h3>
+            <div className="pt-8 border-t border-gray-50">
+              <h3 className="text-xs font-black text-muted uppercase mb-4 tracking-widest">Saisie manuelle du code</h3>
               <form onSubmit={handleManualValidation} className="flex gap-2">
-                <input
-                  type="text"
-                  value={manualCode}
-                  onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                  placeholder="Enter ticket code (e.g., ABC12345)"
-                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary text-gray-900 font-semibold"
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                    placeholder="ex: ABC123456"
+                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-black text-gray-800 placeholder:font-medium placeholder:text-gray-300 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted font-black text-[10px] uppercase">Ticket ID</div>
+                </div>
                 <button
                   type="submit"
-                  className="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600"
+                  className="bg-primary text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-secondary transition-all active:scale-[0.98]"
                 >
-                  Validate
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Validation Result */}
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Validation Result</h2>
+          {/* Result Section */}
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-full min-h-[500px] flex flex-col">
+            <h2 className="text-xl font-black text-gray-800 mb-8 flex items-center gap-3">
+              <span className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm italic">02</span>
+              Résultat de Validation
+            </h2>
 
-            {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-4 text-gray-600">Validating ticket...</p>
-              </div>
-            )}
-
-            {!loading && !validationResult && (
-              <div className="text-center py-8 text-gray-500">
-                <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-                <p>Scan a QR code or enter a ticket code to validate</p>
-              </div>
-            )}
-
-            {!loading && validationResult && (
-              <div className={`p-6 rounded-lg ${validationResult.valid
-                ? 'bg-green-100 border-2 border-green-500'
-                : 'bg-red-100 border-2 border-red-500'
-                }`}>
-                {/* Status Icon */}
-                <div className="text-center mb-4">
-                  {validationResult.valid ? (
-                    <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto">
-                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto">
-                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                  )}
+            <div className="flex-1 flex flex-col">
+              {loading ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-pulse">
+                  <div className="w-20 h-20 border-4 border-secondary/20 border-t-secondary rounded-full animate-spin"></div>
+                  <div className="text-center">
+                    <p className="text-gray-800 font-black uppercase tracking-widest mb-1">Vérification...</p>
+                    <p className="text-muted text-sm">Consultation de la base de données ITRI</p>
+                  </div>
                 </div>
+              ) : !validationResult ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-10 opacity-40">
+                  <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-8 border-4 border-dashed border-gray-200">
+                    <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                  </div>
+                  <p className="font-black text-gray-400 uppercase tracking-widest text-sm">En attente d'un scan ou d'une saisie</p>
+                </div>
+              ) : (
+                <div className={`p-8 rounded-3xl flex flex-col ${validationResult.valid
+                  ? 'bg-green-50 border-2 border-green-200'
+                  : 'bg-red-50 border-2 border-red-200'
+                  } animate-in fade-in zoom-in-95 duration-500`}>
 
-                {/* Status Message */}
-                <h3 className={`text-2xl font-bold text-center mb-4 ${validationResult.valid ? 'text-green-700' : 'text-red-700'
-                  }`}>
-                  {validationResult.valid ? 'VALID TICKET' : 'INVALID TICKET'}
-                </h3>
+                  {/* Big Status Banner */}
+                  <div className="flex items-center gap-6 mb-8">
+                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl ${validationResult.valid ? 'bg-green-500 shadow-green-200' : 'bg-red-500 shadow-red-200'
+                      }`}>
+                      <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {validationResult.valid
+                          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                        }
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className={`text-3xl font-black uppercase tracking-tighter ${validationResult.valid ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                        {validationResult.valid ? 'BILLET VALIDE' : 'BILLET INVALIDE'}
+                      </h3>
+                      <p className={`font-bold mt-1 ${validationResult.valid ? 'text-green-600' : 'text-red-600'}`}>
+                        {validationResult.message}
+                      </p>
+                    </div>
+                  </div>
 
-                <p className={`text-center mb-4 ${validationResult.valid ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                  {validationResult.message}
-                </p>
+                  {/* Reservation Details Card */}
+                  {validationResult.reservation && (
+                    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 flex flex-col gap-6">
+                      <div className="flex justify-between items-start pb-4 border-b border-gray-50">
+                        <div>
+                          <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Détenteur du billet</p>
+                          <h4 className="text-xl font-black text-gray-800 tracking-tight">
+                            {validationResult.reservation.first_name} {validationResult.reservation.last_name}
+                          </h4>
+                        </div>
+                        <div className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
+                          {validationResult.reservation.role === 'student' ? 'Étudiant' : 'Employé'}
+                        </div>
+                      </div>
 
-                {/* Reservation Details (if available) */}
-                {validationResult.reservation && (
-                  <div className="mt-4 pt-4 border-t border-gray-300">
-                    <h4 className="font-bold text-gray-700 mb-2">Attendee Details:</h4>
-                    <div className="space-y-1 text-sm">
-                      <p><span className="font-semibold">Name:</span> {validationResult.reservation.first_name} {validationResult.reservation.last_name}</p>
-                      <p><span className="font-semibold">Email:</span> {validationResult.reservation.email}</p>
-                      <p><span className="font-semibold">Phone:</span> {validationResult.reservation.phone}</p>
-                      <p><span className="font-semibold">Role:</span> {validationResult.reservation.role}</p>
-                      <p><span className="font-semibold">Days:</span> {validationResult.reservation.days?.join(', ')}</p>
-                      <p><span className="font-semibold">Ticket Code:</span> {validationResult.reservation.ticket_code}</p>
+                      <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                        <div>
+                          <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Email</p>
+                          <p className="text-sm font-bold text-gray-700 break-all">{validationResult.reservation.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Téléphone</p>
+                          <p className="text-sm font-bold text-gray-700">{validationResult.reservation.phone}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Jours Réservés</p>
+                          <div className="flex gap-1 mt-1">
+                            {validationResult.reservation.days?.map(d => (
+                              <span key={d} className="w-5 h-5 bg-secondary text-white text-[9px] flex items-center justify-center rounded-sm font-bold shadow-sm">
+                                {d === 'day1' ? 'J1' : d === 'day2' ? 'J2' : 'J3'}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Ticket ID</p>
+                          <code className="text-xs font-black text-secondary bg-blue-50 px-2 py-0.5 rounded">{validationResult.reservation.ticket_code}</code>
+                        </div>
+                      </div>
+
+                      {/* Usage Alert */}
                       {validationResult.max_scans && (
-                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 font-semibold">
-                          ⚠️ Scans Type: {validationResult.scan_count} / {validationResult.max_scans} utilisés
+                        <div className={`mt-2 p-4 rounded-xl flex items-center justify-between ${validationResult.scan_count >= validationResult.max_scans
+                            ? 'bg-red-50 text-red-700 border border-red-100'
+                            : 'bg-amber-50 text-amber-700 border border-amber-100'
+                          }`}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">{validationResult.scan_count >= validationResult.max_scans ? '⛔' : '⚠️'}</span>
+                            <div className="text-sm">
+                              <p className="font-black uppercase tracking-tighter">Statut d'utilisation</p>
+                              <p className="font-medium opacity-80">{validationResult.scan_count} / {validationResult.max_scans} entrées utilisées</p>
+                            </div>
+                          </div>
+                          <div className="font-black text-xl">
+                            {Math.round((validationResult.scan_count / validationResult.max_scans) * 100)}%
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Check-in Button */}
+                      {validationResult.valid && !validationResult.is_used && (
+                        <div className="mt-2">
+                          <button
+                            onClick={() => markTicketAsUsed(validationResult.reservation.ticket_code)}
+                            className="w-full bg-secondary text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-xl shadow-secondary/20 hover:bg-primary transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Confirmer Entrée (Check-in)
+                          </button>
                         </div>
                       )}
                     </div>
-
-                    {/* Mark as Used button for tickets that still have scans allowed */}
-                    {validationResult.valid && !validationResult.is_used && (
-                      <div className="mt-4">
-                        <button
-                          onClick={() => markTicketAsUsed(validationResult.reservation.ticket_code)}
-                          className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
-                        >
-                          Mark as Used (Check In)
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Instructions</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-700">
-            <li>Point the camera at the QR code on the attendee's ticket</li>
-            <li>The system will automatically detect and validate the QR code</li>
-            <li>Green result = Valid ticket (attendee can enter)</li>
-            <li>Red result = Invalid or fully used ticket (all allowed scans depleted)</li>
-            <li>The ticket allows 1 scan per booked day (e.g., 3 days = 3 scans permitted)</li>
-          </ul>
+        {/* Instructions Table */}
+        <div className="mt-12 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+          <h2 className="text-xl font-black text-gray-800 mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Protocole de Validation
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-secondary border border-gray-100 shrink-0">1</div>
+              <div>
+                <h4 className="font-black text-gray-800 text-sm mb-1">Cadrage</h4>
+                <p className="text-muted text-xs font-medium leading-relaxed">Positionnez le QR code de l'attendee dans le cadre de détection au centre de l'écran.</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-secondary border border-gray-100 shrink-0">2</div>
+              <div>
+                <h4 className="font-black text-gray-800 text-sm mb-1">Vérification</h4>
+                <p className="text-muted text-xs font-medium leading-relaxed">Contrôlez la couleur du bandeau (Vert: OK, Rouge: Erreur) et les détails de l'identité.</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-secondary border border-gray-100 shrink-0">3</div>
+              <div>
+                <h4 className="font-black text-gray-800 text-sm mb-1">Check-in</h4>
+                <p className="text-muted text-xs font-medium leading-relaxed">Cliquez sur "Confirmer Entrée" pour décompter une utilisation du pass ITRI de l'utilisateur.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -41,8 +41,7 @@ function AdminDashboard() {
       setStats(statsRes.data);
       setReservations(reservationsRes.data || []);
       setSpeakers(speakersRes.data || []);
-      
-      // Programs come grouped by day
+
       const programData = programsRes.data;
       const allPrograms = [
         ...(programData.day1 || []),
@@ -68,13 +67,13 @@ function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl text-primary font-semibold">Loading dashboard...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-2xl text-primary font-semibold animate-pulse">Loading dashboard...</div>
       </div>
     );
   }
 
-  const COLORS = ['#006AD7', '#9AD9EA', '#21277B', '#5F83B1'];
+  const COLORS = ['#006AD7', '#0EA5E9', '#21277B', '#5F83B1'];
 
   const roleData = [
     { name: 'Students', value: stats?.role_distribution?.students || 0 },
@@ -88,15 +87,22 @@ function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8fafc]">
       {/* Header */}
-      <header className="bg-white shadow-md">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-primary">Admin Dashboard</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">A</span>
+              </div>
+              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                Admin Dashboard
+              </h1>
+            </div>
             <button
               onClick={handleLogout}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-600"
+              className="bg-red-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-600 shadow-md transition-all active:scale-95"
             >
               Logout
             </button>
@@ -107,148 +113,127 @@ function AdminDashboard() {
       <div className="container mx-auto px-6 py-8">
         {/* Quick Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Total Reservations</h3>
-            <p className="text-4xl font-bold text-primary">{stats?.total_reservations || 0}</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Occupancy Rate (Day 1)</h3>
-            <p className="text-4xl font-bold text-accent">{stats?.seat_occupancy?.day1?.percentage || 0}%</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Total Speakers</h3>
-            <p className="text-4xl font-bold text-primary">{speakers.length}</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Total Sessions</h3>
-            <p className="text-4xl font-bold text-accent">{programs.length}</p>
-          </div>
+          {[
+            { label: 'Total Reservations', value: stats?.total_reservations || 0, color: 'text-primary' },
+            { label: 'Occupancy Rate (Day 1)', value: `${stats?.seat_occupancy?.day1?.percentage || 0}%`, color: 'text-accent' },
+            { label: 'Total Speakers', value: speakers.length, color: 'text-primary' },
+            { label: 'Total Sessions', value: programs.length, color: 'text-accent' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <h3 className="text-gray-500 text-sm font-medium mb-2">{stat.label}</h3>
+              <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* Charts */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
           {/* Bar Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-bold text-accent mb-4">Reservations by Day</h3>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+              Reservations by Day
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dayData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="reservations" fill="#006AD7" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B' }} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  cursor={{ fill: '#F1F5F9' }}
+                />
+                <Bar dataKey="reservations" fill="#006AD7" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Pie Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-bold text-accent mb-4">Students vs Employees</h3>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-accent rounded-full"></span>
+              Students vs Employees
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={roleData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  innerRadius={60}
                   outerRadius={100}
-                  fill="#8884d8"
+                  paddingAngle={5}
                   dataKey="value"
                 >
                   {roleData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                <Legend verticalAlign="bottom" height={36} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Management Links */}
-        <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-          <Link
-            to="/admin/reservations"
-            className="bg-primary text-white p-6 rounded-lg shadow-lg hover:bg-accent transform hover:scale-105 transition-all text-center"
-          >
-            <h3 className="text-xl font-bold mb-2">Manage Reservations</h3>
-            <p className="text-sm">View and manage all event reservations</p>
-          </Link>
-
-          <Link
-            to="/admin/speakers"
-            className="bg-primary text-white p-6 rounded-lg shadow-lg hover:bg-accent transform hover:scale-105 transition-all text-center"
-          >
-            <h3 className="text-xl font-bold mb-2">Manage Speakers</h3>
-            <p className="text-sm">Add, edit, or remove speakers</p>
-          </Link>
-
-          <Link
-            to="/admin/programs"
-            className="bg-primary text-white p-6 rounded-lg shadow-lg hover:bg-accent transform hover:scale-105 transition-all text-center"
-          >
-            <h3 className="text-xl font-bold mb-2">Manage Program</h3>
-            <p className="text-sm">Create and update event schedule</p>
-          </Link>
-
-          <Link
-            to="/admin/qr-scanner"
-            className="bg-green-600 text-white p-6 rounded-lg shadow-lg hover:bg-green-700 transform hover:scale-105 transition-all text-center"
-          >
-            <h3 className="text-xl font-bold mb-2">QR Scanner</h3>
-            <p className="text-sm">Scan and validate tickets</p>
-          </Link>
-
-          <Link
-            to="/admin/scan-stats"
-            className="bg-blue-600 text-white p-6 rounded-lg shadow-lg hover:bg-blue-700 transform hover:scale-105 transition-all text-center"
-          >
-            <h3 className="text-xl font-bold mb-2">Scan Statistics</h3>
-            <p className="text-sm">View scanning analytics and reports</p>
-          </Link>
+        <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          {[
+            { to: '/admin/reservations', label: 'Reservations', icon: '📋', color: 'bg-primary' },
+            { to: '/admin/speakers', label: 'Speakers', icon: '🎤', color: 'bg-primary' },
+            { to: '/admin/programs', label: 'Program', icon: '📅', color: 'bg-primary' },
+            { to: '/admin/qr-scanner', label: 'QR Scanner', icon: '🔍', color: 'bg-green-600' },
+            { to: '/admin/scan-stats', label: 'Scan Stats', icon: '📊', color: 'bg-blue-600' },
+          ].map((link, i) => (
+            <Link
+              key={i}
+              to={link.to}
+              className={`${link.color} text-white p-4 rounded-xl shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-all text-center flex flex-col items-center justify-center gap-2`}
+            >
+              <span className="text-2xl">{link.icon}</span>
+              <span className="font-bold">{link.label}</span>
+            </Link>
+          ))}
         </div>
 
         {/* Recent Reservations */}
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl font-bold text-accent mb-4">Recent Reservations</h3>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-gray-800">Recent Reservations</h3>
+            <Link to="/admin/reservations" className="text-primary text-sm font-semibold hover:underline">View All</Link>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Name</th>
-                  <th className="text-left py-3 px-4">Email</th>
-                  <th className="text-left py-3 px-4">Role</th>
-                  <th className="text-left py-3 px-4">Day</th>
-                  <th className="text-left py-3 px-4">Seat</th>
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Name</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Email</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Role</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Day</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Seat</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {reservations.slice(0, 5).map((reservation) => (
-                  <tr key={reservation.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
+                  <tr key={reservation.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-6 text-gray-700 font-medium">
                       {reservation.first_name} {reservation.last_name}
                     </td>
-                    <td className="py-3 px-4">{reservation.email}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-6 text-gray-600">{reservation.email}</td>
+                    <td className="py-4 px-6">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          reservation.role === 'student'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${reservation.role === 'student'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-green-100 text-green-700'
+                          }`}
                       >
                         {reservation.role}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-6 text-gray-600">
                       {reservation.days?.map(d => d === 'day1' ? 'J1' : d === 'day2' ? 'J2' : 'J3').join(', ') || 'N/A'}
                     </td>
-                    <td className="py-3 px-4 font-semibold">
+                    <td className="py-4 px-6 font-semibold text-primary">
                       {reservation.seat_numbers?.map(s => s.seat).join(', ') || 'N/A'}
                     </td>
                   </tr>

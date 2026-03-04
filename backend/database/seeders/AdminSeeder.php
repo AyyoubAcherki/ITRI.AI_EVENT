@@ -13,10 +13,12 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        Admin::create([
-            'name' => 'Admin',
-            'email' => 'admin@itri.ma',
-            'password' => Hash::make('password123'),
-        ]);
+        Admin::updateOrCreate(
+            ['email' => 'itriainticevent@gmail.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('NTIC-@-26ITRIAI'),
+            ]
+        );
     }
 }

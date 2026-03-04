@@ -4,37 +4,53 @@ namespace Database\Seeders;
 
 use App\Models\Speaker;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Seeder to create sample speakers
+ * Seeder to create actual event speakers
  */
 class SpeakerSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Speaker::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         $speakers = [
             [
-                'name' => 'Dr. Ahmed Benali',
-                'job_title' => 'AI Research Director',
-                'bio' => 'Leading AI researcher with 15 years of experience in machine learning and deep learning. Previously worked at Google AI and MIT.',
+                'name' => 'Dr. Zakia El Yakouti',
+                'job_title' => 'Experte en Souveraineté Numérique',
+                'bio' => 'Spécialiste en confiance numérique et protection des données à caractère personnel.',
                 'photo' => null,
             ],
             [
-                'name' => 'Sarah Johnson',
-                'job_title' => 'Data Science Lead at Microsoft',
-                'bio' => 'Expert in data analytics and business intelligence. Speaker at multiple international tech conferences.',
+                'name' => 'Mohamed Tajdid Edine',
+                'job_title' => 'Expert en Gouvernance IT',
+                'bio' => 'Consultant senior en gouvernance et application institutionnelle du numérique.',
                 'photo' => null,
             ],
             [
-                'name' => 'Prof. Mohamed Tazi',
-                'job_title' => 'Professor of Computer Science',
-                'bio' => 'Professor at University of Tanger, specializing in natural language processing and computer vision.',
+                'name' => 'Aya Chihal',
+                'job_title' => 'Innovatrice en Solutions AI',
+                'bio' => 'Spécialiste de l\'intégration de l\'IA au sein des entreprises pour la création de valeur ajoutée.',
                 'photo' => null,
             ],
             [
-                'name' => 'Fatima Zahra Alami',
-                'job_title' => 'CEO of TechMorocco',
-                'bio' => 'Entrepreneur and tech visionary. Founded multiple successful startups in the AI space.',
+                'name' => 'Loubna',
+                'job_title' => 'Experte en Compétitivité Numérique',
+                'bio' => 'Formatrice en transformation des idées en solutions technologiques concrètes.',
+                'photo' => null,
+            ],
+            [
+                'name' => 'Dr. Ahmed Yassine Chakour',
+                'job_title' => 'Chercheur en Sécurité des Systèmes',
+                'bio' => 'Expert en impacts de l\'IA sur le marché de l\'emploi et risques de cybersécurité.',
+                'photo' => null,
+            ],
+            [
+                'name' => 'Ayoub El Fellah',
+                'job_title' => 'Expert en Cybersécurité',
+                'bio' => 'Spécialiste de la détection et de la prévention des menaces liées à l\'IA.',
                 'photo' => null,
             ],
         ];

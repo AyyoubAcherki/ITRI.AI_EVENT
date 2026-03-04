@@ -18,7 +18,15 @@ class ProgramController extends Controller
     public function index()
     {
         $programs = Program::with('speaker')->orderBy('day')->orderBy('start_time')->get();
-        
+
+        // Add formatted time field
+        $programs->transform(function ($program) {
+            $start = date('H:i', strtotime($program->start_time));
+            $end = date('H:i', strtotime($program->end_time));
+            $program->time = $start . ' - ' . $end;
+            return $program;
+        });
+
         // Group programs by day
         $grouped = [
             'day1' => $programs->where('day', 'day1')->values(),
@@ -37,6 +45,14 @@ class ProgramController extends Controller
     public function all()
     {
         $programs = Program::with('speaker')->orderBy('day')->orderBy('start_time')->get();
+
+        $programs->transform(function ($program) {
+            $start = date('H:i', strtotime($program->start_time));
+            $end = date('H:i', strtotime($program->end_time));
+            $program->time = $start . ' - ' . $end;
+            return $program;
+        });
+
         return response()->json($programs);
     }
 

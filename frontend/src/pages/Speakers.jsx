@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getSpeakers } from '../utils/api';
 
+import GlareHover from '../components/GlareHover/GlareHover';
+
 function Speakers() {
   const [speakers, setSpeakers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,10 @@ function Speakers() {
     <div className="min-h-screen py-16 pt-32">
       {/* Header */}
       <div className="container mx-auto px-6 mb-24 text-center">
-        <h1 className="text-5xl font-bold text-center text-dark mb-8">
+        <h1 className="text-5xl font-bold text-center text-white mb-8">
           Our Speakers
         </h1>
-        <p className="text-lg text-center text-muted max-w-4xl mx-auto leading-relaxed">
+        <p className="text-lg text-center text-slate-400 max-w-4xl mx-auto leading-relaxed">
           Meet the industry experts and thought leaders who will share their knowledge
           and insights at AI ITRI NTIC EVENT.
         </p>
@@ -52,12 +54,18 @@ function Speakers() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {speakers.map((speaker) => (
-              <div
+              <GlareHover
                 key={speaker.id}
-                className="bg-light border border-slate-700 rounded-lg shadow-lg overflow-hidden hover:shadow-2xl hover:border-primary transform hover:-translate-y-2 transition-all"
+                glareColor="#ffffff"
+                glareOpacity={0.2}
+                glareAngle={-30}
+                glareSize={200}
+                transitionDuration={800}
+                borderRadius="1rem"
+                className="bg-slate-800/40 border border-slate-700 shadow-xl overflow-hidden hover:shadow-2xl hover:border-primary transform hover:-translate-y-2 transition-all block backdrop-blur-sm"
               >
                 {/* Speaker Photo */}
-                <div className="h-64 bg-gradient-to-br from-slate-800 to-primary flex items-center justify-center">
+                <div className="w-full h-64 bg-gradient-to-br from-slate-800 to-primary flex items-center justify-center pointer-events-none">
                   {speaker.photo ? (
                     <img
                       src={`http://localhost:8000/storage/${speaker.photo}`}
@@ -72,18 +80,18 @@ function Speakers() {
                 </div>
 
                 {/* Speaker Info */}
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-dark mb-2">
+                <div className="p-6 w-full pointer-events-none">
+                  <h3 className="text-2xl font-bold text-white mb-2">
                     {speaker.name}
                   </h3>
-                  <p className="text-secondary font-semibold mb-4">
+                  <p className="text-primary font-semibold mb-4">
                     {speaker.job_title}
                   </p>
-                  <p className="text-muted leading-relaxed">
+                  <p className="text-slate-400 leading-relaxed">
                     {speaker.bio}
                   </p>
                 </div>
-              </div>
+              </GlareHover>
             ))}
           </div>
         )}

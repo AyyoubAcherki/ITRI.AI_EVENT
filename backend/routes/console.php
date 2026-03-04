@@ -21,7 +21,7 @@ Artisan::command('inspire', function () {
 Artisan::command('test:email', function () {
     try {
         \Illuminate\Support\Facades\Mail::raw('Test email', function ($msg) {
-            $msg->to('ayo.acher@gmail.com')->subject('Test Email from Artisan');
+            $msg->to('itriainticevent@gmail.com')->subject('Test Email from Artisan');
         });
         $this->info('Email sent successfully');
     } catch (\Exception $e) {

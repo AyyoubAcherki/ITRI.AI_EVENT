@@ -382,7 +382,7 @@ function Reservation() {
 
     return (
       <div className="flex-1">
-        <h4 className="text-center font-bold mb-4 text-gray-700">{blockName}</h4>
+        <h4 className="text-center font-bold mb-4 text-slate-300">{blockName}</h4>
         <div className="space-y-2">
           {rows.map((rowNum) => (
             <div key={`${blockName}-${rowNum}`} className="flex gap-1 justify-center">
@@ -408,13 +408,13 @@ function Reservation() {
   };
 
   return (
-    <div className="min-h-screen py-16 pt-32 bg-light">
+    <div className="min-h-screen py-16 pt-32">
       {/* Header */}
       <div className="container mx-auto px-6 mb-12 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-dark mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
           Réservez Votre Siège
         </h1>
-        <p className="text-lg text-muted max-w-3xl mx-auto">
+        <p className="text-lg text-slate-400 max-w-3xl mx-auto">
           Sélectionnez votre jour et votre siège préféré, puis remplissez le formulaire pour compléter votre réservation.
         </p>
       </div>
@@ -422,15 +422,15 @@ function Reservation() {
       {/* Success Message */}
       {showSuccess && (
         <div className="container mx-auto px-6 mb-8">
-          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-6 py-8 rounded-lg text-center animate-fadeIn">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-200 mb-4 text-blue-600">
+          <div className="bg-blue-900/40 border border-blue-500/50 text-blue-100 px-6 py-8 rounded-lg text-center animate-fadeIn backdrop-blur-sm">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-800/50 mb-4 text-blue-400">
               <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <p className="font-bold text-2xl mb-2">Presque fini !</p>
             <p className="text-lg mb-4">Votre demande de réservation a été enregistrée. **Veuillez vérifier votre email pour confirmer votre place.**</p>
-            <p className="text-sm">Si vous ne confirmez pas via l'email envoyé, vous serez placé sur la liste d'attente.</p>
+            <p className="text-sm text-blue-300/80">Si vous ne confirmez pas via l'email envoyé, vous serez placé sur la liste d'attente.</p>
           </div>
         </div>
       )}
@@ -438,8 +438,8 @@ function Reservation() {
       {/* Waitlist Success */}
       {waitlistSuccess && (
         <div className="container mx-auto px-6 mb-8">
-          <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-8 rounded-lg text-center animate-fadeIn">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-200 mb-4 text-green-600">
+          <div className="bg-green-900/40 border border-green-500/50 text-green-100 px-6 py-8 rounded-lg text-center animate-fadeIn backdrop-blur-sm">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-800/50 mb-4 text-green-400">
               <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
