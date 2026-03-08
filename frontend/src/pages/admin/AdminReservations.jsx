@@ -92,42 +92,59 @@ function AdminReservations() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      {/* Header */}
+      <header className="bg-white/70 backdrop-blur-md border-b border-gray-200 sticky top-0 z-20">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shadow-lg shadow-secondary/20">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-secondary to-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-3 transition-transform duration-300">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-secondary to-primary">
-                Gestion des Réservations
-              </h1>
+              <div>
+                <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-accent tracking-tight">
+                  Gestion des Réservations
+                </h1>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] -mt-1">Administration • Participants & Sièges</p>
+              </div>
             </div>
-            <Link
-              to="/admin/dashboard"
-              className="text-muted hover:text-secondary font-bold flex items-center gap-2 transition-all hover:-translate-x-1"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Tableau de bord
-            </Link>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleExportToSheets}
+                className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-lg shadow-emerald-200 active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Exporter CSV
+              </button>
+              <Link
+                to="/admin/dashboard"
+                className="px-6 py-2.5 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold hover:text-primary hover:border-primary/20 transition-all flex items-center gap-2 shadow-sm hover:shadow-md active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Filters */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div>
-              <label className="block text-xs font-bold text-muted uppercase mb-2 tracking-wider">Jour</label>
+      <div className="container mx-auto px-6 py-10">
+        {/* Filters Panel */}
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-200/40 mb-10 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 relative z-10">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Filtrer par Jour</label>
               <select
                 value={filters.day}
                 onChange={(e) => setFilters({ ...filters, day: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-secondary focus:bg-white transition-all outline-none text-gray-700"
+                className="w-full px-5 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all outline-none text-gray-700 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25em_1.25em] bg-[right_1rem_center] bg-no-repeat"
               >
                 <option value="">Tous les jours</option>
                 <option value="day1">Jour 1</option>
@@ -136,157 +153,165 @@ function AdminReservations() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-muted uppercase mb-2 tracking-wider">Rôle</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Catégorie</label>
               <select
                 value={filters.role}
                 onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-secondary focus:bg-white transition-all outline-none text-gray-700"
+                className="w-full px-5 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all outline-none text-gray-700 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25em_1.25em] bg-[right_1rem_center] bg-no-repeat"
               >
                 <option value="">Tous les rôles</option>
-                <option value="student">Étudiant</option>
-                <option value="employee">Employé</option>
+                <option value="student">Étudiants</option>
+                <option value="employee">Employés</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-muted uppercase mb-2 tracking-wider">Statut</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Statut Réservation</label>
               <select
                 value={filters.status}
                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-secondary focus:bg-white transition-all outline-none text-gray-700"
+                className="w-full px-5 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all outline-none text-gray-700 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25em_1.25em] bg-[right_1rem_center] bg-no-repeat"
               >
                 <option value="">Tous les statuts</option>
-                <option value="pending">En attente</option>
                 <option value="confirmed">Confirmé</option>
-                <option value="canceled">Annulé</option>
+                <option value="pending">En attente</option>
                 <option value="waiting_list">Liste d'attente</option>
+                <option value="canceled">Annulé</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-muted uppercase mb-2 tracking-wider">Recherche</label>
-              <div className="relative">
+            <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
+              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Recherche Rapide</label>
+              <div className="relative group">
                 <input
                   type="text"
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  placeholder="Nom ou email..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-secondary focus:bg-white transition-all outline-none text-gray-700"
+                  placeholder="Nom, Email ou Institution..."
+                  className="w-full pl-12 pr-6 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all outline-none text-gray-700 placeholder:text-gray-400 shadow-inner"
                 />
-                <svg className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={handleExportToSheets}
-                className="w-full bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#059669] shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Exporter (CSV)
-              </button>
             </div>
           </div>
         </div>
 
         {/* Reservations Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-gray-200/40 overflow-hidden relative">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Participant</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Contact</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Rôle</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Pass ITRI</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Siège</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Code</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Statut</th>
-                  <th className="text-center py-4 px-6 text-[10px] font-black uppercase text-muted tracking-widest">Actions</th>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="text-left py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Participant</th>
+                  <th className="text-left py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Contact</th>
+                  <th className="text-left py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Type</th>
+                  <th className="text-left py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Accès Jour</th>
+                  <th className="text-left py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Sièges</th>
+                  <th className="text-left py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Statut</th>
+                  <th className="text-center py-6 px-8 text-[10px] font-black uppercase text-muted tracking-widest">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
+                    <td colSpan="7" className="text-center py-20">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+                        <p className="text-xs font-black text-muted uppercase tracking-[0.2em]">Synchronisation des données...</p>
+                      </div>
                     </td>
                   </tr>
                 ) : reservations.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-12 text-muted font-medium italic">
-                      Aucune réservation trouvée
+                    <td colSpan="7" className="text-center py-24">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-black text-gray-800 tracking-tight">Aucun participant trouvé</h3>
+                      <p className="text-xs font-bold text-muted uppercase tracking-widest">Ajustez vos filtres pour voir plus de résultats</p>
                     </td>
                   </tr>
                 ) : (
                   reservations.map((reservation) => (
-                    <tr key={reservation.id} className="hover:bg-blue-50/30 transition-colors">
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-secondary font-bold text-xs shadow-inner">
+                    <tr key={reservation.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="py-5 px-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-xl flex items-center justify-center text-primary font-black text-xs shadow-inner">
                             {reservation.first_name[0]}{reservation.last_name[0]}
                           </div>
                           <div>
-                            <div className="font-bold text-gray-800 text-sm tracking-tight">{reservation.first_name} {reservation.last_name}</div>
-                            <div className="text-[11px] text-muted font-bold uppercase tracking-tighter">{reservation.institution_name || 'Sans institution'}</div>
+                            <div className="font-black text-gray-800 text-sm tracking-tight">{reservation.first_name} {reservation.last_name}</div>
+                            <div className="text-[10px] text-muted font-black uppercase tracking-widest">{reservation.institution_name || 'PARTICULIER'}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="text-sm font-medium text-gray-700">{reservation.email}</div>
-                        <div className="text-[11px] text-muted font-bold">{reservation.phone}</div>
+                      <td className="py-5 px-8">
+                        <div className="text-xs font-bold text-gray-700">{reservation.email}</div>
+                        <div className="text-[10px] text-muted font-bold tracking-tight">{reservation.phone}</div>
                       </td>
-                      <td className="py-4 px-6">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${reservation.role === 'student' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                      <td className="py-5 px-8">
+                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${reservation.role === 'student' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
                           }`}>
                           {reservation.role === 'student' ? 'Étudiant' : 'Employé'}
                         </span>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="flex gap-1">
+                      <td className="py-5 px-8">
+                        <div className="flex gap-1.5">
                           {reservation.days?.map(d => (
-                            <span key={d} className="w-5 h-5 bg-secondary text-white text-[9px] flex items-center justify-center rounded-sm font-bold shadow-sm">
-                              {d === 'day1' ? 'J1' : d === 'day2' ? 'J2' : 'J3'}
-                            </span>
+                            <div key={d} className="w-7 h-7 bg-primary/10 text-primary border border-primary/20 rounded-lg flex items-center justify-center text-[10px] font-black shadow-sm" title={d}>
+                              {d.replace('day', 'J')}
+                            </div>
                           ))}
                         </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="grid grid-cols-1 gap-1">
+                      <td className="py-5 px-8">
+                        <div className="flex flex-wrap gap-1.5 max-w-[120px]">
                           {reservation.seat_numbers?.map(s => (
-                            <span key={s.seat} className="text-xs font-bold text-primary whitespace-nowrap bg-blue-50 px-2 py-0.5 rounded border border-blue-100 inline-block text-center shadow-sm">
+                            <span key={s.seat} className="text-[9px] font-black text-secondary bg-secondary/5 px-2 py-1 rounded-lg border border-secondary/10 shadow-sm">
                               {s.seat}
                             </span>
                           ))}
+                          {(!reservation.seat_numbers || reservation.seat_numbers.length === 0) && (
+                            <span className="text-[9px] font-black text-gray-300 italic uppercase">NON ASSIGNÉ</span>
+                          )}
                         </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <code className="text-xs font-mono text-muted bg-[#F1F5F9] px-2 py-0.5 rounded border border-gray-200">{reservation.ticket_code || 'N/A'}</code>
-                      </td>
-                      <td className="py-4 px-6">
+                      <td className="py-5 px-8">
                         {getStatusBadge(reservation.status, reservation.is_used)}
                       </td>
-                      <td className="py-4 px-6 text-center">
-                        <button
-                          onClick={() => handleDelete(reservation.id)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-90"
-                          title="Supprimer la réservation"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                      <td className="py-5 px-8 text-center">
+                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleDelete(reservation.id)}
+                            className="p-2.5 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all active:scale-90 border border-transparent hover:border-red-100"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="bg-gray-50/50 p-4 border-t border-gray-100 flex justify-between items-center px-8">
+            <div className="text-[10px] font-black text-muted uppercase tracking-widest">
+              Total: {reservations.length} Participants
+            </div>
+            <div className="flex gap-1">
+              <div className="w-1 h-1 bg-primary/30 rounded-full"></div>
+              <div className="w-1 h-1 bg-primary/30 rounded-full"></div>
+              <div className="w-1 h-1 bg-primary/30 rounded-full"></div>
+            </div>
           </div>
         </div>
       </div>

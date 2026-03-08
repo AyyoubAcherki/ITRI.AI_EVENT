@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Reservations (Admin)
     Route::get('/reservations', [ReservationController::class, 'index']);
     Route::get('/reservations/{reservation}', [ReservationController::class, 'show']);
+    Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy']);
 
     // QR Validation (Admin) - Higher rate limit for scanning
     Route::middleware('throttle:qr-scan')->group(function () {

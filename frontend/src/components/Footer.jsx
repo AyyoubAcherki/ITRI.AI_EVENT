@@ -47,7 +47,7 @@ function Footer() {
               <p className="text-slate-400 cursor-pointer hover:text-white transition-colors flex items-center gap-2" onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=P5V3%2BCCW,+Tanger', '_blank')}>
                 <span>📍</span> P5V3+CCW, Av. Forces Armées Royales, Tanger
               </p>
-              <p className="text-slate-400">Email: info@itri-event.com</p>
+              <p className="text-slate-400">Email: itriainticevent@gmail.com</p>
               <p className="text-slate-400">Phone: +212 XXX XXX XXX</p>
             </div>
           </div>

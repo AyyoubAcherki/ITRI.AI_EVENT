@@ -8,12 +8,15 @@ export default {
     extend: {
       colors: {
         // AI ITRI NTIC EVENT 2026 Color Palette
-        primary: '#006AD7', // Professional Blue
-        secondary: '#21277B', // Deep Navy
-        accent: '#0EA5E9', // Light Blue Accent
-        dark: '#0f172a',    // Background/Dark
-        light: '#f8fafc',   // Foreground/Light
-        muted: '#64748b',   // Muted Slate
+        primary: '#21277B',   // Deep Navy (Main)
+        secondary: '#006AD7', // Electric Blue (Vibrant)
+        accent: '#FF007A',    // Deep Pink/Magenta (Pop)
+        success: '#10B981',   // Emerald
+        warning: '#F59E0B',   // Amber
+        danger: '#EF4444',    // Rose/Red
+        dark: '#0F172A',      // Slate/Background
+        light: '#F8FAFC',     // Ghost White
+        muted: '#64748B',     // Slate Grey
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

@@ -521,4 +521,35 @@ class ReservationController extends Controller
             'status' => 'canceled',
         ]);
     }
+
+    /**
+     * Delete a reservation (Admin only)
+     * 
+     * @param Reservation $reservation
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(Reservation $reservation)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Release the seats associated with this reservation
+            DB::table('reservation_seats')->where('reservation_id', $reservation->id)->delete();
+
+            // Delete the reservation
+            $reservation->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Réservation supprimée avec succès.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error deleting reservation: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la suppression de la réservation.',
+            ], 500);
+        }
+    }
 }
