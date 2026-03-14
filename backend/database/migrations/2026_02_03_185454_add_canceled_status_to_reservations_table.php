@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('reservations', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'confirmed', 'waiting_list', 'canceled'])->change();
+            // Laravel + SQLite often struggle with altering enums. 
+            // We change it to a string type so it accepts any of the old or new values.
+            $table->string('status')->default('pending')->change();
         });
     }
 
@@ -22,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('reservations', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'confirmed', 'waiting_list'])->change();
+             $table->string('status')->default('pending')->change();
         });
     }
 };

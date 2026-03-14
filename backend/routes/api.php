@@ -85,6 +85,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/statistics', [ReservationController::class, 'statistics']);
     Route::get('/scan-statistics', [ReservationController::class, 'scanStatistics']);
 
+    // Emails (Admin)
+    Route::get('/admin/emails', [\App\Http\Controllers\EmailSentController::class, 'index']);
+    Route::post('/admin/emails/{id}/retry', [\App\Http\Controllers\EmailSentController::class, 'retry']);
+
     // Export (Admin)
     Route::get('/reservations/export', [ReservationController::class, 'export']);
 });

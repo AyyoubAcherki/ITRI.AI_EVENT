@@ -7,6 +7,7 @@ use App\Models\Reservation;
 use App\Mail\FinalConfirmationMailable;
 use App\Mail\ReservationConfirmationMailable;
 use Illuminate\Support\Facades\Mail;
+use App\Models\EmailSent;
 
 class SendFinalConfirmations extends Command
 {
@@ -57,9 +58,25 @@ class SendFinalConfirmations extends Command
         foreach ($reservations as $reservation) {
             try {
                 Mail::to($reservation->email)->send(new FinalConfirmationMailable($reservation));
+                
+                EmailSent::create([
+                    'reservation_id' => $reservation->id,
+                    'email_to' => $reservation->email,
+                    'subject' => 'Confirmation Finale - AI ITRI NTIC EVENT',
+                    'status' => 'delivered'
+                ]);
+
                 $reservation->update(['notified_at_final' => now()]);
                 $this->line("Envoyé à: {$reservation->email}");
             } catch (\Exception $e) {
+                EmailSent::create([
+                    'reservation_id' => $reservation->id,
+                    'email_to' => $reservation->email,
+                    'subject' => 'Confirmation Finale - AI ITRI NTIC EVENT',
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage()
+                ]);
+
                 $this->error("Erreur pour {$reservation->email}: " . $e->getMessage());
             }
         }
@@ -80,9 +97,24 @@ class SendFinalConfirmations extends Command
 
                 Mail::to($reservation->email)->send(new \App\Mail\ActionRequiredMailable($reservation, $confirmationUrl, $cancellationUrl));
 
+                EmailSent::create([
+                    'reservation_id' => $reservation->id,
+                    'email_to' => $reservation->email,
+                    'subject' => 'Action Requise : Confirmez votre réservation - AI ITRI',
+                    'status' => 'delivered'
+                ]);
+
                 $reservation->update(['notified_at_reminder' => now()]);
                 $this->line("Email d'action envoyé à: {$reservation->email}");
             } catch (\Exception $e) {
+                EmailSent::create([
+                    'reservation_id' => $reservation->id,
+                    'email_to' => $reservation->email,
+                    'subject' => 'Action Requise : Confirmez votre réservation - AI ITRI',
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage()
+                ]);
+
                 $this->error("Erreur d'action pour {$reservation->email}: " . $e->getMessage());
             }
         }

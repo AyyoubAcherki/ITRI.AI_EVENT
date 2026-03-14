@@ -15,6 +15,7 @@ import AdminSpeakers from './pages/admin/AdminSpeakers';
 import AdminPrograms from './pages/admin/AdminPrograms';
 import AdminQRScanner from './pages/admin/AdminQRScanner';
 import AdminScanStats from './pages/admin/AdminScanStats';
+import AdminEmails from './pages/admin/AdminEmails';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/admin/programs" element={<AdminPrograms />} />
         <Route path="/admin/qr-scanner" element={<AdminQRScanner />} />
         <Route path="/admin/scan-stats" element={<AdminScanStats />} />
+        <Route path="/admin/emails" element={<AdminEmails />} />
 
         {/* Public Routes (with navbar/footer) */}
         <Route

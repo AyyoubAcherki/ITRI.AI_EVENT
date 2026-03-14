@@ -18,6 +18,8 @@ function AdminQRScanner() {
   const [selectedCamera, setSelectedCamera] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastScannedCode, setLastScannedCode] = useState(null);
+  const [scannerBuffer, setScannerBuffer] = useState('');
+  const lastKeyTime = useRef(Date.now());
   const html5QrCode = useRef(null);
   const scanTimeoutRef = useRef(null);
 
@@ -40,6 +42,79 @@ function AdminQRScanner() {
       }
     };
   }, [navigate]);
+
+  // Hardware Scanner Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if user is typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastKeyTime.current;
+      lastKeyTime.current = currentTime;
+
+      // Physical scanners input characters very fast (< 50ms per keypress)
+      // If time interval > 100ms, it is probably human typing; reset the buffer.
+      if (timeDiff > 100) {
+        if (e.key.length === 1) {
+          setScannerBuffer(e.key);
+        } else {
+          setScannerBuffer('');
+        }
+      } else {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (scannerBuffer.length > 5) {
+            handleHardwareScan(scannerBuffer);
+          }
+          setScannerBuffer('');
+        } else if (e.key.length === 1) {
+          setScannerBuffer(prev => prev + e.key);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [scannerBuffer, isProcessing]);
+
+  const extractTicketCode = (rawText) => {
+    if (!rawText) return "";
+    try {
+      const parsed = JSON.parse(rawText);
+      if (parsed && typeof parsed === 'object' && parsed.ticket_code) return parsed.ticket_code;
+    } catch { }
+
+    // Fuzzy regex extraction for AZERTY/Caps Lock corrupted hardware scans 
+    // Example: "TICKET?CODE">"2UEBAMF2"
+    // Find "TICKET", then any non-alphanumeric chars, then "CODE", then any non-alphanumeric, then 8 alphanumeric chars.
+    let match = rawText.match(/TICKET[^a-zA-Z0-9]*CODE[^a-zA-Z0-9]*([A-Z0-9]{8})/i);
+    if (match) return match[1];
+
+    // Fallback: finding the first 8-character alphanumeric string (like 2UEBAMF2)
+    const matches = rawText.match(/([A-Z0-9]{8})/g);
+    if (matches && matches.length > 0) {
+        return matches[0];
+    }
+    
+    return rawText.trim();
+  };
+
+  const handleHardwareScan = (scannedText) => {
+    if (isProcessing) return;
+    if (html5QrCode.current && scanning) stopScanner();
+    
+    setIsProcessing(true);
+    setScanResult(scannedText);
+    
+    const ticketCode = extractTicketCode(scannedText);
+    validateQRCode(JSON.stringify({ ticket_code: ticketCode }));
+
+    if (scanTimeoutRef.current) clearTimeout(scanTimeoutRef.current);
+    scanTimeoutRef.current = setTimeout(() => setIsProcessing(false), 3000);
+  };
 
   const getCameras = async () => {
     try {
@@ -118,7 +193,9 @@ function AdminQRScanner() {
     await stopScanner();
 
     setScanResult(decodedText);
-    validateQRCode(decodedText);
+    
+    const ticketCode = extractTicketCode(decodedText);
+    validateQRCode(JSON.stringify({ ticket_code: ticketCode }));
 
     // Reset processing after 3 seconds to allow for new scans
     scanTimeoutRef.current = setTimeout(() => {
@@ -209,6 +286,8 @@ function AdminQRScanner() {
   const handleManualValidation = (e) => {
     e.preventDefault();
     if (manualCode.trim()) {
+      const cleanCode = extractTicketCode(manualCode.trim().toUpperCase());
+      
       // First, find the reservation by ticket code to get the email
       fetch('http://localhost:8000/api/reservations', {
         headers: {
@@ -217,28 +296,30 @@ function AdminQRScanner() {
       })
         .then(response => response.json())
         .then(reservations => {
-          const reservation = reservations.find(r => r.ticket_code === manualCode.trim());
+          const reservation = reservations.find(r => r.ticket_code === cleanCode);
           if (reservation) {
             // Create QR data with both ticket_code and email (like real QR codes)
             const qrData = JSON.stringify({
-              ticket_code: manualCode.trim(),
+              ticket_code: cleanCode,
               email: reservation.email
             });
             setScanResult(qrData);
             validateQRCode(qrData);
           } else {
             // If ticket not found, still validate with just ticket code
-            const qrData = JSON.stringify({ ticket_code: manualCode.trim() });
+            const qrData = JSON.stringify({ ticket_code: cleanCode });
             setScanResult(qrData);
             validateQRCode(qrData);
           }
         })
         .catch(() => {
           // If API call fails, validate with just ticket code
-          const qrData = JSON.stringify({ ticket_code: manualCode.trim() });
+          const qrData = JSON.stringify({ ticket_code: cleanCode });
           setScanResult(qrData);
           validateQRCode(qrData);
         });
+        
+        setManualCode(''); // Clear input after scan
     }
   };
 
@@ -315,6 +396,7 @@ function AdminQRScanner() {
               <div className="w-2.5 h-8 bg-secondary rounded-full"></div>
               Numérisation du Badge
             </h2>
+            <p className="text-xs font-bold text-gray-500 mb-6 italic">Supporte la Webcam et les Douchettes/Scanners USB (scan automatique)</p>
 
             {/* Camera Selection */}
             {cameras.length > 1 && (

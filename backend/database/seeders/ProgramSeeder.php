@@ -14,9 +14,19 @@ class ProgramSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        }
+        
         Program::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        }
         // Get actual speakers by name
         $zakia = Speaker::where('name', 'Dr. Zakia El Yakouti')->first();
         $mohamed = Speaker::where('name', 'Mohamed Tajdid Edine')->first();

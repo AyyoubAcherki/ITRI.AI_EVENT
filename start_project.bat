@@ -1,10 +1,45 @@
 @echo off
-echo Starting AI ITRI TECKETING Project...
+color 0B
+echo ===================================================
+echo     Starting AI ITRI TECKETING Project...
+echo ===================================================
+echo.
 
-echo Starting Backend Server and Seeding Database...
-start cmd /k "cd backend && php artisan db:seed && php artisan serve"
+echo [1/3] Preparing Backend Environment...
+cd backend
 
-echo Starting Frontend Server...
-start cmd /k "cd frontend && npm run dev"
+IF NOT EXIST "database\database.sqlite" (
+    echo Creating database.sqlite...
+    type nul > "database\database.sqlite"
+)
 
-echo All servers have been launched in separate windows!
+echo Clearing config/cache...
+call php artisan config:clear
+call php artisan cache:clear
+
+echo Running database migrations...
+call php artisan migrate --force
+
+echo Starting Laravel Server...
+start "AI ITRI Backend" cmd /k "php artisan serve"
+
+cd ..
+echo.
+
+echo [2/3] Installing Frontend Dependencies (if any)...
+cd frontend
+call npm install
+
+echo.
+echo [3/3] Starting Frontend Development Server...
+start "AI ITRI Frontend" cmd /k "npm run dev"
+
+cd ..
+
+echo.
+echo ===================================================
+echo   All servers have been launched in separate windows!
+echo   - Backend: http://localhost:8000
+echo   - Frontend: http://localhost:3000
+echo ===================================================
+pause

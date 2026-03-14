@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ReservationConfirmationMailable;
+use App\Models\EmailSent;
 
 /**
  * ReservationController handles reservation operations
@@ -180,7 +181,22 @@ class ReservationController extends Controller
             $confirmationUrl = config('app.frontend_url', 'http://localhost:3000') . '/confirm-reservation?token=' . $reservation->confirmation_token;
             $cancellationUrl = config('app.frontend_url', 'http://localhost:3000') . '/cancel-reservation?token=' . $reservation->confirmation_token;
             Mail::to($reservation->email)->send(new ReservationConfirmationMailable($reservation, $confirmationUrl, $cancellationUrl));
+
+            EmailSent::create([
+                'reservation_id' => $reservation->id,
+                'email_to' => $reservation->email,
+                'subject' => 'Confirmation de votre réservation - AI ITRI NTIC EVENT',
+                'status' => 'delivered'
+            ]);
         } catch (\Exception $e) {
+            EmailSent::create([
+                'reservation_id' => $reservation->id,
+                'email_to' => $reservation->email,
+                'subject' => 'Confirmation de votre réservation - AI ITRI NTIC EVENT',
+                'status' => 'failed',
+                'error_message' => $e->getMessage()
+            ]);
+
             Log::error('Error sending confirmation email: ' . $e->getMessage());
         }
 
