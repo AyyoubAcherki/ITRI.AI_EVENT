@@ -83,27 +83,8 @@ class ReservationController extends Controller
             'institution_name' => 'required_if:role,student|nullable|string|max:255',
             'days' => 'required|array|min:1',
             'days.*' => 'in:day1,day2,day3',
-            'seats' => 'required|array',
-            'seats.*.seat_id' => 'required|exists:seats,id',
-            'seats.*.day' => 'required|in:day1,day2,day3',
         ]);
 
-        // Check if seats are available
-        foreach ($validated['seats'] as $seatData) {
-            $isReserved = DB::table('reservation_seats')
-                ->join('reservations', 'reservation_seats.reservation_id', '=', 'reservations.id')
-                ->where('reservation_seats.seat_id', $seatData['seat_id'])
-                ->where('reservation_seats.day', $seatData['day'])
-                ->whereIn('reservations.status', ['pending', 'confirmed'])
-                ->exists();
-
-            if ($isReserved) {
-                $seat = Seat::find($seatData['seat_id']);
-                return response()->json([
-                    'message' => "Seat {$seat->seat_number} is already reserved for {$seatData['day']}",
-                ], 422);
-            }
-        }
 
         // Generate unique ticket code
         $ticketCode = strtoupper(Str::random(8));
@@ -114,15 +95,6 @@ class ReservationController extends Controller
             'email' => $validated['email'],
         ]);
 
-        // Get seat numbers for display
-        $seatNumbers = [];
-        foreach ($validated['seats'] as $seatData) {
-            $seat = Seat::find($seatData['seat_id']);
-            $seatNumbers[] = [
-                'day' => $seatData['day'],
-                'seat' => $seat->seat_number,
-            ];
-        }
 
         try {
             DB::beginTransaction();
@@ -136,36 +108,13 @@ class ReservationController extends Controller
                 'role' => $validated['role'],
                 'institution_name' => $validated['institution_name'] ?? null,
                 'days' => $validated['days'],
-                'seat_numbers' => $seatNumbers,
+                'seat_numbers' => [],
                 'ticket_code' => $ticketCode,
                 'qr_code' => $qrData,
                 'is_used' => false,
-                'status' => 'pending',
-                'confirmation_token' => Str::random(40),
+                'status' => 'confirmed',
+                'confirmation_token' => null,
             ]);
-
-            // Create reservation_seats entries
-            foreach ($validated['seats'] as $seatData) {
-                try {
-                    DB::table('reservation_seats')->insert([
-                        'reservation_id' => $reservation->id,
-                        'seat_id' => $seatData['seat_id'],
-                        'day' => $seatData['day'],
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                } catch (\Illuminate\Database\QueryException $e) {
-                    if ($e->getCode() == 23000) {
-                        DB::rollBack();
-                        $seat = Seat::find($seatData['seat_id']);
-                        $dayLabel = $seatData['day'] === 'day1' ? 'Jour 1' : ($seatData['day'] === 'day2' ? 'Jour 2' : 'Jour 3');
-                        return response()->json([
-                            'message' => "Désolé, le siège {$seat->seat_number} vient d'être réservé par quelqu'un d'autre pour le {$dayLabel}.",
-                        ], 409);
-                    }
-                    throw $e;
-                }
-            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -176,34 +125,8 @@ class ReservationController extends Controller
             ], 500);
         }
 
-        // Send confirmation email
-        try {
-            $confirmationUrl = config('app.frontend_url', 'http://localhost:3000') . '/confirm-reservation?token=' . $reservation->confirmation_token;
-            $cancellationUrl = config('app.frontend_url', 'http://localhost:3000') . '/cancel-reservation?token=' . $reservation->confirmation_token;
-            Mail::to($reservation->email)->send(new ReservationConfirmationMailable($reservation, $confirmationUrl, $cancellationUrl));
-
-            EmailSent::create([
-                'reservation_id' => $reservation->id,
-                'email_to' => $reservation->email,
-                'subject' => 'Confirmation de votre réservation - AI ITRI NTIC EVENT',
-                'status' => 'delivered'
-            ]);
-        } catch (\Exception $e) {
-            EmailSent::create([
-                'reservation_id' => $reservation->id,
-                'email_to' => $reservation->email,
-                'subject' => 'Confirmation de votre réservation - AI ITRI NTIC EVENT',
-                'status' => 'failed',
-                'error_message' => $e->getMessage()
-            ]);
-
-            Log::error('Error sending confirmation email: ' . $e->getMessage());
-        }
-
-
-
         return response()->json([
-            'message' => 'Réservation créée. Veuillez vérifier votre email pour confirmer.',
+            'message' => 'Réservation créée avec succès.',
             'reservation' => $reservation,
             'ticket_code' => $ticketCode,
         ], 201);

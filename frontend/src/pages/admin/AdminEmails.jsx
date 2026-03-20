@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   EnvelopeIcon, 
   CheckCircleIcon, 
@@ -87,12 +88,36 @@ function AdminEmails() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-        <EnvelopeIcon className="h-8 w-8 mr-3 text-indigo-600" />
-        Monitoring des Emails
-      </h1>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      {/* Header */}
+      <header className="bg-white/70 backdrop-blur-md border-b border-gray-200 sticky top-0 z-20">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-secondary to-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-3 group hover:rotate-0 transition-transform duration-300">
+                <EnvelopeIcon className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-accent tracking-tight">
+                  Monitoring des Emails
+                </h1>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] -mt-1">Administration • Communications</p>
+              </div>
+            </div>
+            <Link
+              to="/admin/dashboard"
+              className="px-6 py-2.5 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold hover:text-primary hover:border-primary/20 transition-all flex items-center gap-2 shadow-sm hover:shadow-md active:scale-95"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Retour
+            </Link>
+          </div>
+        </div>
+      </header>
 
+      <div className="container mx-auto px-6 py-10">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
@@ -304,6 +329,7 @@ function AdminEmails() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

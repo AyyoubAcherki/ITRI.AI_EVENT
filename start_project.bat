@@ -23,6 +23,9 @@ call php artisan migrate --force
 echo Starting Laravel Server...
 start "AI ITRI Backend" cmd /k "php artisan serve"
 
+echo Starting Queue Worker...
+start "AI ITRI Queue Worker" cmd /k "php artisan queue:work"
+
 cd ..
 echo.
 
