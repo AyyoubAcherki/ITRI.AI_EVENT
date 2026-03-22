@@ -199,7 +199,7 @@ function AdminPrograms() {
                   >
                     <option value="day1">Jour 1</option>
                     <option value="day2">Jour 2</option>
-                    <option value="day3">Jour 3</option>
+                    <option value="day3">Jour 3 (Hackathon)</option>
                   </select>
                 </div>
 
@@ -265,7 +265,7 @@ function AdminPrograms() {
                   <div key={day} className="space-y-6">
                     <div className="flex items-center gap-4 px-2">
                       <h2 className="text-xl font-black text-gray-800 tracking-tight whitespace-nowrap">
-                        {day === 'Day 1' ? 'Jour 1' : day === 'Day 2' ? 'Jour 2' : 'Jour 3'}
+                        {day === 'day1' ? 'Jour 1' : day === 'day2' ? 'Jour 2' : 'Jour 3 (Hackathon)'}
                       </h2>
                       <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
                     </div>

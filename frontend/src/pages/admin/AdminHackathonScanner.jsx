@@ -3,10 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 
 /**
- * AdminQRScanner Component
- * Allows admin to scan QR codes from tickets and validate them
+ * AdminHackathonScanner Component
+ * Allows admin to scan QR codes exclusively for Hackathon tickets
  */
-function AdminQRScanner() {
+function AdminHackathonScanner() {
   const navigate = useNavigate();
   const [scanResult, setScanResult] = useState(null);
   const [validationResult, setValidationResult] = useState(null);
@@ -221,9 +221,19 @@ function AdminQRScanner() {
     try {
       const token = localStorage.getItem('adminToken');
       const isHackathon = qrData.includes('HCK-') || qrData.includes('HACK-');
-      const endpoint = isHackathon 
-        ? 'http://localhost:8000/api/admin/hackathons/validate-qr'
-        : 'http://localhost:8000/api/reservations/validate-qr';
+      
+      if (!isHackathon && !qrData.includes('ticket_code')) {
+           // Skip basic heuristic check errors. Wait for backend to parse.
+      } else if (!isHackathon) {
+          setValidationResult({
+               valid: false,
+               message: "Ceci n'est pas un badge Hackathon",
+          });
+          setLoading(false);
+          return;
+      }
+
+      const endpoint = 'http://localhost:8000/api/admin/hackathons/validate-qr';
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -263,9 +273,17 @@ function AdminQRScanner() {
       const token = localStorage.getItem('adminToken');
       const qrData = JSON.stringify({ ticket_code: ticketCode });
       const isHackathon = ticketCode.startsWith('HCK-') || ticketCode.startsWith('HACK-');
-      const endpoint = isHackathon 
-        ? 'http://localhost:8000/api/admin/hackathons/validate-qr'
-        : 'http://localhost:8000/api/reservations/validate-qr';
+      
+      if (!isHackathon) {
+          setValidationResult({
+               valid: false,
+               message: "Ceci n'est pas un badge Hackathon.",
+          });
+          setLoading(false);
+          return;
+      }
+
+      const endpoint = 'http://localhost:8000/api/admin/hackathons/validate-qr';
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -377,9 +395,9 @@ function AdminQRScanner() {
               </div>
               <div>
                 <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-accent tracking-tight">
-                  Scanner de Billets
+                  Scanner Hackathon
                 </h1>
-                <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] -mt-1">Administration • Contrôle d'Accès</p>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] -mt-1">Administration • Hackathon Seulement</p>
               </div>
             </div>
             <Link
@@ -765,4 +783,4 @@ function AdminQRScanner() {
   );
 }
 
-export default AdminQRScanner;
+export default AdminHackathonScanner;

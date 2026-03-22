@@ -40,10 +40,10 @@ function Reservation() {
   const handleDayToggle = (day) => {
     if (day === 'all') {
       // Toggle all days
-      if (selectedDays.length === 3) {
+      if (selectedDays.length === 2) {
         setSelectedDays(['day1']);
       } else {
-        setSelectedDays(['day1', 'day2', 'day3']);
+        setSelectedDays(['day1', 'day2']);
       }
     } else {
       if (selectedDays.includes(day)) {
@@ -228,7 +228,7 @@ function Reservation() {
     doc.text(fullName.length > 30 ? fullName.substring(0, 27) + '...' : fullName, 20, 58);
     doc.text(formData.role === 'student' ? 'Étudiant' : 'Employé', 95, 58);
 
-    const dayLabels = selectedDays.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(', ');
+    const dayLabels = selectedDays.map(d => d === 'day1' ? 'Jour 1' : 'Jour 2').join(', ');
     doc.text(dayLabels, 20, 73);
 
     doc.setTextColor(234, 179, 8); // Yellow 500 for seats
@@ -359,7 +359,6 @@ function Reservation() {
                   {[
                     { value: 'day1', label: 'Jour 1' },
                     { value: 'day2', label: 'Jour 2' },
-                    { value: 'day3', label: 'Jour 3' },
                   ].map((day) => (
                     <button
                       key={day.value}
@@ -376,12 +375,20 @@ function Reservation() {
                   <button
                     type="button"
                     onClick={() => handleDayToggle('all')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedDays.length === 3
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedDays.length === 2
                       ? 'bg-slate-900 text-white border border-slate-700'
                       : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
                       }`}
                   >
-                    Les 3 Jours
+                    Les 2 Jours
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = '/hackathon'}
+                    className="px-4 py-2 rounded-lg font-semibold transition-all bg-indigo-600 text-white border border-indigo-500 hover:bg-indigo-700 text-center flex items-center gap-2"
+                  >
+                    Jour 3 (Hackathon)
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                   </button>
                 </div>
               </div>
@@ -480,9 +487,9 @@ function Reservation() {
                   <p className="text-sm text-muted mb-4">
                     <span className="font-semibold text-slate-300">Jour(s) sélectionné(s):</span>{' '}
                     <span className="text-primary font-bold">
-                      {selectedDays.length === 3
-                        ? 'Les 3 Jours'
-                        : selectedDays.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(', ')}
+                      {selectedDays.length === 2
+                        ? 'Les 2 Jours'
+                        : selectedDays.map(d => d === 'day1' ? 'Jour 1' : 'Jour 2').join(', ')}
                     </span>
                   </p>
                 </div>

@@ -32,6 +32,12 @@ export const confirmReservation = (token) => api.post('/reservations/confirm', {
 export const cancelReservation = (token) => api.post('/reservations/cancel', { token });
 export const submitWaitlist = (data) => api.post('/waitlist', data);
 
+// Hackathon
+export const registerHackathon = (data) => api.post('/hackathon/register', data);
+export const getHackathonRegistrations = () => api.get('/admin/hackathons');
+export const updateHackathonStatus = (id, status) => api.put(`/admin/hackathons/${id}/status`, { status });
+export const deleteHackathonRegistration = (id) => api.delete(`/admin/hackathons/${id}`);
+
 // Admin Authentication
 export const adminLogin = (credentials) => api.post('/admin/login', credentials);
 export const adminLogout = () => api.post('/admin/logout');

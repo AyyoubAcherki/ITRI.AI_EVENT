@@ -15,7 +15,8 @@ import AdminSpeakers from './pages/admin/AdminSpeakers';
 import AdminPrograms from './pages/admin/AdminPrograms';
 import AdminQRScanner from './pages/admin/AdminQRScanner';
 import AdminScanStats from './pages/admin/AdminScanStats';
-import AdminEmails from './pages/admin/AdminEmails';
+import AdminHackathon from './pages/admin/AdminHackathon';
+import HackathonRegistration from './pages/HackathonRegistration';
 
 function App() {
   return (
@@ -29,7 +30,7 @@ function App() {
         <Route path="/admin/programs" element={<AdminPrograms />} />
         <Route path="/admin/qr-scanner" element={<AdminQRScanner />} />
         <Route path="/admin/scan-stats" element={<AdminScanStats />} />
-        <Route path="/admin/emails" element={<AdminEmails />} />
+        <Route path="/admin/hackathons" element={<AdminHackathon />} />
 
         {/* Public Routes (with navbar/footer) */}
         <Route
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/reservation" element={<Reservation />} />
                 <Route path="/confirm-reservation" element={<ConfirmReservation />} />
                 <Route path="/cancel-reservation" element={<CancelReservation />} />
+                <Route path="/hackathon" element={<HackathonRegistration />} />
               </Routes>
               <Footer />
             </>

@@ -18,7 +18,6 @@ function Program() {
       const allPrograms = [
         ...(response.data.day1 || []).map(p => ({ ...p, day: 'Day 1' })),
         ...(response.data.day2 || []).map(p => ({ ...p, day: 'Day 2' })),
-        ...(response.data.day3 || []).map(p => ({ ...p, day: 'Day 3' })),
       ];
       setPrograms(allPrograms);
     } catch (error) {
@@ -58,7 +57,7 @@ function Program() {
       {/* Day Selector */}
       <div className="container mx-auto px-6 mb-20">
         <div className="flex justify-center gap-4 flex-wrap">
-          {['Day 1', 'Day 2', 'Day 3'].map((day) => (
+          {['Day 1', 'Day 2'].map((day) => (
             <button
               key={day}
               onClick={() => setSelectedDay(day)}
@@ -70,6 +69,13 @@ function Program() {
               {day}
             </button>
           ))}
+          <button
+            onClick={() => window.location.href = '/hackathon'}
+            className="px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.5)] transform hover:scale-105 border-transparent flex items-center gap-2"
+          >
+            Day 3 (Hackathon)
+            <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+          </button>
         </div>
       </div>
 

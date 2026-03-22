@@ -26,12 +26,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Final confirmation emails on 16/03/2026 at 09:00
-        $schedule->command('app:send-final-confirmations')
-            ->cron('0 9 16 3 *');
-
-        // Cleanup unconfirmed reservations and notify waitlist
-        $schedule->command('reservations:cleanup-unconfirmed')->daily();
+        // No scheduled tasks for now
     }
 
     /**

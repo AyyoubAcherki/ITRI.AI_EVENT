@@ -7,6 +7,7 @@ use App\Http\Controllers\SpeakerController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\SeatController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\HackathonController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,9 @@ Route::post('/reservations/cancel', [ReservationController::class, 'cancel']);
 // Waitlist - Public
 Route::post('/waitlist', [\App\Http\Controllers\Api\WaitlistController::class, 'store']);
 
+// Hackathon - Public
+Route::post('/hackathon/register', [HackathonController::class, 'register']);
+
 // Download ticket - Public
 Route::get('/tickets/{ticketCode}/download', [ReservationController::class, 'downloadTicket']);
 
@@ -81,13 +85,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/reservations/validate-qr', [ReservationController::class, 'validateQR']);
     });
 
+    // Hackathon (Admin)
+    Route::get('/admin/hackathons', [HackathonController::class, 'index']);
+    Route::put('/admin/hackathons/{id}/status', [HackathonController::class, 'updateStatus']);
+    Route::delete('/admin/hackathons/{id}', [HackathonController::class, 'destroy']);
+    Route::middleware('throttle:qr-scan')->group(function () {
+        Route::post('/admin/hackathons/validate-qr', [HackathonController::class, 'validateQR']);
+    });
+
     // Statistics (Admin)
     Route::get('/statistics', [ReservationController::class, 'statistics']);
     Route::get('/scan-statistics', [ReservationController::class, 'scanStatistics']);
 
-    // Emails (Admin)
-    Route::get('/admin/emails', [\App\Http\Controllers\EmailSentController::class, 'index']);
-    Route::post('/admin/emails/{id}/retry', [\App\Http\Controllers\EmailSentController::class, 'retry']);
+
 
     // Export (Admin)
     Route::get('/reservations/export', [ReservationController::class, 'export']);

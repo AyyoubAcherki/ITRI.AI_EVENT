@@ -1,0 +1,285 @@
+**Yes! 100%** — This is actually the **best and most common approach** with a VPS. One server hosts everything. Here's exactly how it works:
+
+---
+
+## 🏗️ Architecture on One Contabo KVM Server
+
+```
+Internet
+    │
+    ▼
+┌─────────────────────────────────────────┐
+│           Contabo VPS ($4.50/mo)         │
+│                                         │
+│  ┌──────────────────────────────────┐   │
+│  │         NGINX (Port 80/443)      │   │
+│  │    (Acts as a reverse proxy)     │   │
+│  └────────────┬─────────────────────┘   │
+│               │                         │
+│       ┌───────┴────────┐                │
+│       ▼                ▼                │
+│  ┌─────────┐     ┌──────────────┐       │
+│  │  React  │     │   Laravel    │       │
+│  │  /dist  │     │  Port 8000   │       │
+│  │ (Static)│     │   (PHP-FPM)  │       │
+│  └─────────┘     └──────┬───────┘       │
+│                         │               │
+│                   ┌─────▼──────┐        │
+│                   │   MySQL    │        │
+│                   │ Port 3306  │        │
+│                   └────────────┘        │
+└─────────────────────────────────────────┘
+```
+
+### How Nginx splits traffic:
+- `yourdomain.com` → serves the **React** built files (static)
+- `yourdomain.com/api/*` → forwards to **Laravel** backend
+- Everything on **one domain**, **one server**, **one IP**
+
+---
+
+## 📋 Full Step-by-Step Setup Guide
+
+### ✅ Step 1 — Buy Contabo VPS S
+1. Go to [contabo.com](https://contabo.com)
+2. Choose **VPS S** → $4.50/month
+3. Select **Ubuntu 22.04** as OS
+4. Choose a region close to your users (Europe recommended for Morocco)
+5. After purchase, you get an **IP address + root password** by email
+
+---
+
+### ✅ Step 2 — Connect to Your Server
+```bash
+# From your Windows PC — open PowerShell or CMD
+ssh root@YOUR_SERVER_IP
+
+# Example:
+ssh root@45.132.XX.XX
+```
+
+---
+
+### ✅ Step 3 — Install Everything (Run this script)
+
+```bash
+# Update system
+apt update && apt upgrade -y
+
+# Install PHP 8.1 + all Laravel extensions
+apt install -y php8.1 php8.1-fpm php8.1-mbstring php8.1-xml \
+  php8.1-curl php8.1-mysql php8.1-zip php8.1-bcmath \
+  php8.1-gd php8.1-tokenizer php8.1-dom
+
+# Install MySQL
+apt install -y mysql-server
+
+# Install Nginx
+apt install -y nginx
+
+# Install Composer
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+# Install Node.js 18
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+apt install -y nodejs
+
+# Install Git
+apt install -y git
+
+# Install Certbot (free SSL)
+apt install -y certbot python3-certbot-nginx
+```
+
+---
+
+### ✅ Step 4 — Clone Your Project
+
+```bash
+# Create web directory
+mkdir -p /var/www/itri_event
+cd /var/www/itri_event
+
+# Clone from GitHub
+git clone https://github.com/amghar855/AI.ITRI.TECKETING.git .
+```
+
+---
+
+### ✅ Step 5 — Set Up the Database
+
+```bash
+# Secure MySQL
+mysql_secure_installation
+
+# Create DB and user
+mysql -u root -p
+```
+```sql
+CREATE DATABASE itri_event_2026;
+CREATE USER 'itri_user'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+GRANT ALL PRIVILEGES ON itri_event_2026.* TO 'itri_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+---
+
+### ✅ Step 6 — Configure Laravel Backend
+
+```bash
+cd /var/www/itri_event/backend
+
+# Install PHP dependencies
+composer install --optimize-autoloader --no-dev
+
+# Copy and edit .env
+cp .env.example .env
+nano .env
+```
+
+Edit these values in [.env](cci:7://file:///c:/Users/Admin/Desktop/OFPPT/AI%20ITRI%20EVENT/setweb/model%20ad%202/itri_event/backend/.env:0:0-0:0):
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=itri_event_2026
+DB_USERNAME=itri_user
+DB_PASSWORD=StrongPassword123!
+```
+
+```bash
+# Generate app key & run migrations
+php artisan key:generate
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+
+# Fix permissions
+chown -R www-data:www-data /var/www/itri_event/backend
+chmod -R 775 /var/www/itri_event/backend/storage
+```
+
+---
+
+### ✅ Step 7 — Build the React Frontend
+
+```bash
+cd /var/www/itri_event/frontend
+
+# Install dependencies
+npm install
+
+# Set the API URL to same domain (no CORS issues!)
+echo "VITE_API_URL=https://yourdomain.com/api" > .env
+
+# Build for production
+npm run build
+
+# The built files are now in /var/www/itri_event/frontend/dist/
+```
+
+---
+
+### ✅ Step 8 — Configure Nginx (The Magic Part)
+
+```bash
+nano /etc/nginx/sites-available/itri_event
+```
+
+Paste this config:
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    root /var/www/itri_event/frontend/dist;
+    index index.html;
+
+    # ✅ Serve React frontend (SPA routing fix)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # ✅ Forward /api/* to Laravel backend
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ✅ Laravel storage files (PDFs, QR codes, etc.)
+    location /storage/ {
+        alias /var/www/itri_event/backend/storage/app/public/;
+    }
+}
+```
+
+```bash
+# Enable the site
+ln -s /etc/nginx/sites-available/itri_event /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+```
+
+---
+
+### ✅ Step 9 — Start Laravel as a Background Service
+
+```bash
+nano /etc/systemd/system/itri-laravel.service
+```
+
+```ini
+[Unit]
+Description=ITRI Laravel Backend
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/itri_event/backend
+ExecStart=/usr/bin/php artisan serve --host=127.0.0.1 --port=8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+systemctl enable itri-laravel
+systemctl start itri-laravel
+```
+
+---
+
+### ✅ Step 10 — Free SSL Certificate
+
+```bash
+certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+> This gives you **HTTPS for free** via Let's Encrypt — auto-renews every 90 days!
+
+---
+
+## 🎉 Final Result
+
+| What | Where |
+|---|---|
+| Your site | `https://yourdomain.com` |
+| API | `https://yourdomain.com/api/` |
+| No CORS issues | ✅ (same domain!) |
+| SSL/HTTPS | ✅ Free |
+| Cost | **$4.50/month** total |
+
+> **No CORS configuration needed at all** — since frontend and backend are on the **same domain**, they talk directly without any cross-origin restrictions! 🔥
+
+---
+
+Want me to create a **single automated bash script** that does all of this in one run? You'd just paste it into the server and it sets everything up automatically! 🚀

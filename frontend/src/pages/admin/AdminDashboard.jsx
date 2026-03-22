@@ -83,7 +83,7 @@ function AdminDashboard() {
   const dayData = [
     { name: 'Jour 1', reservations: stats?.reservations_per_day?.day1 || 0 },
     { name: 'Jour 2', reservations: stats?.reservations_per_day?.day2 || 0 },
-    { name: 'Jour 3', reservations: stats?.reservations_per_day?.day3 || 0 },
+    { name: 'Jour 3 (Hackathon)', reservations: stats?.reservations_per_day?.day3 || 0 },
   ];
 
   return (
@@ -269,14 +269,14 @@ function AdminDashboard() {
         {/* Management Quick Access */}
         <div className="mb-10">
           <h2 className="text-xs font-black text-muted uppercase tracking-[0.3em] mb-6 pl-2">Accès Rapide</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
             {[
               { to: '/admin/reservations', label: 'Réservations', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />, color: 'text-blue-600' },
               { to: '/admin/speakers', label: 'Intervenants', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />, color: 'text-indigo-600' },
               { to: '/admin/programs', label: 'Programme', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />, color: 'text-violet-600' },
               { to: '/admin/qr-scanner', label: 'Scanner QR', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h2M4 8h2m14 0h2M4 6h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z" />, color: 'text-emerald-600' },
               { to: '/admin/scan-stats', label: 'Stats Scans', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />, color: 'text-cyan-600' },
-              { to: '/admin/emails', label: 'Emails', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />, color: 'text-orange-600' },
+              { to: '/admin/hackathons', label: 'Hackathon', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />, color: 'text-indigo-600' },
             ].map((link, i) => (
               <Link
                 key={i}
@@ -349,7 +349,7 @@ function AdminDashboard() {
                       <div className="flex gap-1">
                         {reservation.days?.map(d => (
                           <span key={d} className="w-5 h-5 bg-secondary text-white text-[8px] flex items-center justify-center rounded-sm font-black shadow-sm">
-                            {d === 'day1' ? 'J1' : d === 'day2' ? 'J2' : 'J3'}
+                            {d === 'day1' ? 'J1' : d === 'day2' ? 'J2' : 'J3(H)'}
                           </span>
                         ))}
                       </div>

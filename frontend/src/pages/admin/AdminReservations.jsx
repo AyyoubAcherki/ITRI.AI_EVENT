@@ -73,7 +73,7 @@ function AdminReservations() {
         r.phone,
         r.role === 'student' ? 'Étudiant' : 'Employé',
         r.institution_name || 'N/A',
-        r.days?.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3').join(' + ') || 'N/A',
+        r.days?.map(d => d === 'day1' ? 'Jour 1' : d === 'day2' ? 'Jour 2' : 'Jour 3 (Hackathon)').join(' + ') || 'N/A',
         r.seat_numbers?.map(s => s.seat).join(', ') || 'N/A',
         r.ticket_code || 'N/A',
         r.status,
@@ -149,7 +149,7 @@ function AdminReservations() {
                 <option value="">Tous les jours</option>
                 <option value="day1">Jour 1</option>
                 <option value="day2">Jour 2</option>
-                <option value="day3">Jour 3</option>
+                <option value="day3">Jour 3 (Hackathon)</option>
               </select>
             </div>
 
