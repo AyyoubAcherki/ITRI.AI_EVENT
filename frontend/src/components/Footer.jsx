@@ -37,6 +37,11 @@ function Footer() {
                   Reserve Seat
                 </Link>
               </li>
+              <li>
+                <Link to="/hackathon" className="text-slate-400 hover:text-primary transition-colors">
+                  Hackathon Registration
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -48,7 +53,7 @@ function Footer() {
                 <span>📍</span> P5V3+CCW, Av. Forces Armées Royales, Tanger
               </p>
               <p className="text-slate-400">Email: itriainticevent@gmail.com</p>
-              <p className="text-slate-400">Phone: +212 XXX XXX XXX</p>
+              <p className="text-slate-400">Phone: +212 639-355922</p>
             </div>
           </div>
         </div>
