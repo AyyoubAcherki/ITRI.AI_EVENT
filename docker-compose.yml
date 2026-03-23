@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: itri_backend_prod
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - backend_storage:/var/www/html/storage
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+      - APP_ENV=production
+      - APP_DEBUG=false
+    depends_on:
+      - db
+      
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://VOTRE_IP_VPS:8000/api
+    container_name: itri_frontend_prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  db:
+    image: mysql:8.0
+    container_name: itri_db_prod
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=laravel
+      - MYSQL_ROOT_PASSWORD=secret
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
+  backend_storage:
