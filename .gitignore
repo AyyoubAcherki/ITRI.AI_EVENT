@@ -30,6 +30,11 @@ backend/.env
 backend/storage/*.key
 backend/storage/logs/*
 !backend/storage/logs/.gitignore
+backend/public/storage
+backend/storage/app/public/*
+!backend/storage/app/public/.gitignore
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
 
 # Frontend specific
 frontend/node_modules/
