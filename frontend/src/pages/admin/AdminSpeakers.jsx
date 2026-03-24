@@ -47,7 +47,15 @@ function AdminSpeakers() {
       loadSpeakers();
     } catch (error) {
       console.error('Error saving speaker:', error);
-      alert('Failed to save speaker');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save speaker';
+      const validationErrors = error.response?.data?.errors;
+      
+      if (validationErrors) {
+        const firstError = Object.values(validationErrors)[0][0];
+        alert(`Validation error: ${firstError}`);
+      } else {
+        alert(`Error: ${errorMessage}`);
+      }
     }
   };
 
