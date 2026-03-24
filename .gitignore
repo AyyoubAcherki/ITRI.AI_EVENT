@@ -35,6 +35,9 @@ backend/storage/app/public/*
 !backend/storage/app/public/.gitignore
 backend/bootstrap/cache/*
 !backend/bootstrap/cache/.gitignore
+backend/database/*.sqlite
+backend/public/media
+*.sqlite
 
 # Frontend specific
 frontend/node_modules/
