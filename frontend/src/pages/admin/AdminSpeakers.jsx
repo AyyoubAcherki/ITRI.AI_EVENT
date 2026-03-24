@@ -234,7 +234,7 @@ function AdminSpeakers() {
                 <div className="h-64 relative overflow-hidden">
                   {speaker.photo ? (
                     <img
-                      src={`http://localhost:8000/storage/${speaker.photo}`}
+                      src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')}/storage/${speaker.photo}`}
                       alt={speaker.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />

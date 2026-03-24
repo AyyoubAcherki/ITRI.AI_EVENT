@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["php", "composer"]
+
+[phases.build]
+cmds = ["composer install --no-interaction --optimize-autoloader --no-dev", "php artisan storage:link || true"]
+
+[start]
+cmd = "php artisan storage:link && php-fpm -D && nginx -g 'daemon off;'"

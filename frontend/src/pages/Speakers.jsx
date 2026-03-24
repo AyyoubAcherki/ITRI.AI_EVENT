@@ -68,15 +68,21 @@ function Speakers() {
                 <div className="w-full h-64 bg-gradient-to-br from-slate-800 to-primary flex items-center justify-center pointer-events-none">
                   {speaker.photo ? (
                     <img
-                      src={`http://localhost:8000/storage/${speaker.photo}`}
+                      src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')}/storage/${speaker.photo}`}
                       alt={speaker.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
-                  ) : (
-                    <div className="text-white text-6xl font-bold">
-                      {speaker.name.charAt(0)}
-                    </div>
-                  )}
+                  ) : null}
+                  <div 
+                    className="text-white text-6xl font-bold flex items-center justify-center w-full h-full"
+                    style={{ display: speaker.photo ? 'none' : 'flex' }}
+                  >
+                    {speaker.name.charAt(0)}
+                  </div>
                 </div>
 
                 {/* Speaker Info */}

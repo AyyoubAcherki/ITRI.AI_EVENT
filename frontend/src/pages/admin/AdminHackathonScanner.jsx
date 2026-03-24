@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
+import api from '../../utils/api';
 
 /**
  * AdminHackathonScanner Component
@@ -157,7 +158,9 @@ function AdminHackathonScanner() {
       setError(null);
     } catch (err) {
       console.error('Error starting scanner:', err);
-      setError('Error starting camera: ' + err.message);
+      const errorMsg = err?.message || (typeof err === 'string' ? err : 'Unknown error');
+      setError('Erreur caméra : ' + errorMsg + '. Vérifiez que vous êtes en HTTPS et avez autorisé la caméra.');
+      setScanning(false);
     }
   };
 
@@ -233,28 +236,19 @@ function AdminHackathonScanner() {
           return;
       }
 
-      const endpoint = 'http://localhost:8000/api/admin/hackathons/validate-qr';
+      const endpoint = '/admin/hackathons/validate-qr';
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ qr_data: qrData, mark_as_used: false }),
+      const response = await api.post(endpoint, { 
+        qr_data: qrData, 
+        mark_as_used: false 
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setValidationResult(data);
+      setValidationResult(response.data);
     } catch (error) {
       console.error('Error validating QR code:', error);
       setValidationResult({
         valid: false,
-        message: `Error: ${error.message}`,
+        message: `Error: ${error.response?.data?.message || error.message}`,
       });
     } finally {
       setLoading(false);
@@ -283,28 +277,19 @@ function AdminHackathonScanner() {
           return;
       }
 
-      const endpoint = 'http://localhost:8000/api/admin/hackathons/validate-qr';
+      const endpoint = '/admin/hackathons/validate-qr';
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ qr_data: qrData, mark_as_used: true }), // Actually mark as used
+      const response = await api.post(endpoint, { 
+        qr_data: qrData, 
+        mark_as_used: true 
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setValidationResult(data);
+      setValidationResult(response.data);
     } catch (error) {
       console.error('Error marking ticket as used:', error);
       setValidationResult({
         valid: false,
-        message: `Error: ${error.message}`,
+        message: `Error: ${error.response?.data?.message || error.message}`,
       });
     } finally {
       setLoading(false);
@@ -317,13 +302,9 @@ function AdminHackathonScanner() {
       const cleanCode = extractTicketCode(manualCode.trim().toUpperCase());
       
       // First, find the reservation by ticket code to get the email
-      fetch('http://localhost:8000/api/reservations', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        },
-      })
-        .then(response => response.json())
-        .then(reservations => {
+      api.get('/reservations')
+        .then(response => {
+          const reservations = response.data;
           const reservation = reservations.find(r => r.ticket_code === cleanCode);
           if (reservation) {
             // Create QR data with both ticket_code and email (like real QR codes)

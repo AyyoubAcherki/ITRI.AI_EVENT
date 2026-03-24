@@ -25,7 +25,7 @@ use App\Http\Controllers\HackathonController;
 // ==========================================
 
 // Authentication
-Route::post('/admin/login', [AuthController::class, 'login']);
+Route::post('/admin/login', [AuthController::class, 'login'])->name('login');
 
 // Speakers - Public access
 Route::get('/speakers', [SpeakerController::class, 'index']);

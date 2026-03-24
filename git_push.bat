@@ -18,7 +18,8 @@ git commit -m "%commit_msg%"
 echo.
 
 :: 6) تصيفط الخدمة
-echo [3/3] Envoi vers GitHub (git push origin main)
+echo [3/3] Envoi vers GitHub (https://github.com/AyyoubAcherki/ITRI.AI_EVENT.git)
+git remote set-url origin https://github.com/AyyoubAcherki/ITRI.AI_EVENT.git
 git push origin main
 echo.
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../../utils/api';
 
 /**
  * AdminScanStats Component
@@ -24,36 +25,18 @@ function AdminScanStats() {
 
   const fetchScanStats = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        navigate('/admin/login');
-        return;
-      }
-
-      const response = await fetch('http://localhost:8000/api/scan-statistics', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (response.status === 401) {
-        // Token expired or invalid
+      const response = await api.get('/scan-statistics');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching scan stats:', error);
+      
+      if (error.response?.status === 401) {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
         return;
       }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setStats(data);
-    } catch (error) {
-      console.error('Error fetching scan stats:', error);
-      setError(error.message);
+      
+      setError(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }
