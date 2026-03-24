@@ -59,9 +59,12 @@ class SpeakerController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
         ]);
 
+        \Illuminate\Support\Facades\Log::info('Speaker creation request received', ['has_file' => $request->hasFile('photo')]);
+
         // Handle photo upload if provided
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('speakers', 'public');
+            \Illuminate\Support\Facades\Log::info('Photo stored', ['path' => $path]);
             $validated['photo'] = $path;
         }
 
@@ -98,6 +101,8 @@ class SpeakerController extends Controller
             'bio' => 'sometimes|required|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        \Illuminate\Support\Facades\Log::info('Speaker update request received', ['id' => $id, 'has_file' => $request->hasFile('photo')]);
 
         // Handle photo upload if provided
         if ($request->hasFile('photo')) {
