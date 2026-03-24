@@ -21,5 +21,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Ensure storage link exists in production
+        if (!file_exists(public_path('storage'))) {
+            try {
+                app('files')->link(storage_path('app/public'), public_path('storage'));
+            } catch (\Exception $e) {
+                // Silently fail
+            }
+        }
     }
 }
