@@ -1,5 +1,5 @@
 [variables]
-PHP_VERSION = "8.2"
+NIXPACKS_PHP_VERSION = "8.2"
 
 [phases.build]
 cmds = ["composer install --no-interaction --optimize-autoloader --no-dev", "php artisan storage:link || true"]
