@@ -18,7 +18,7 @@ Route::get('/', function () {
 });
 
 // Storage fallback route if symlink is broken
-Route::get('/storage/{path}', function ($path) {
+Route::get('/media/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
     if (!Illuminate\Support\Facades\File::exists($fullPath)) {
         abort(404);

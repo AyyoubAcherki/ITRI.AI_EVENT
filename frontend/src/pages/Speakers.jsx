@@ -68,7 +68,7 @@ function Speakers() {
                 <div className="w-full h-64 bg-gradient-to-br from-slate-800 to-primary flex items-center justify-center pointer-events-none">
                   {speaker.photo ? (
                     <img
-                      src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')}/storage/${speaker.photo}`}
+                      src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')}/media/${speaker.photo}`}
                       alt={speaker.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
