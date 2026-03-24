@@ -233,11 +233,24 @@ function AdminSpeakers() {
               <div key={speaker.id} className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col">
                 <div className="h-64 relative overflow-hidden">
                   {speaker.photo ? (
-                    <img
-                      src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')}/storage/${speaker.photo}`}
-                      alt={speaker.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
+                    <>
+                      <img
+                        src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')}/storage/${speaker.photo}`}
+                        alt={speaker.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) {
+                            e.target.nextSibling.style.display = 'flex';
+                          }
+                        }}
+                      />
+                      <div className="w-full h-full bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center" style={{ display: 'none' }}>
+                        <span className="text-white text-6xl font-black opacity-40 select-none">
+                          {speaker.name.charAt(0)}
+                        </span>
+                      </div>
+                    </>
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center">
                       <span className="text-white text-6xl font-black opacity-40 select-none">

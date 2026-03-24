@@ -23,9 +23,15 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         // Ensure storage link exists in production
-        if (!file_exists(public_path('storage'))) {
+        $link = public_path('storage');
+        $target = storage_path('app/public');
+        
+        if (!file_exists($link)) {
+            if (is_link($link)) {
+                @unlink($link);
+            }
             try {
-                app('files')->link(storage_path('app/public'), public_path('storage'));
+                @symlink($target, $link);
             } catch (\Exception $e) {
                 // Silently fail
             }
